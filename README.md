@@ -2,7 +2,7 @@
 Dugan's Dogs capstone project! Solar-powered vehicle tracking with real-time map visualization.
 
 Setup instructions:
-A and B necessary to complete set up
+A and B necessary to complete setup
 
 A. CCS Setup
 1. Create new CCS project
