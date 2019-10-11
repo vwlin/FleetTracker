@@ -11,7 +11,6 @@
 #include "node.h"
 #include "UART.h"
 #include "help.h"
-#include "timerA.h"
 #include "LED.h"
 
 void main(void){
