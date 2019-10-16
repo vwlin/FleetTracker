@@ -4,10 +4,10 @@
 #include <msp430.h>
 
 /*
- * Red LED
- * GPIO: P1.1 (1.1 in board, 1.6 in prototype)
+ * LED
+ * GPIO: P1.0
  */
-#define LED_BIT                     BIT1
+#define LED_BIT                     BIT0
 #define LED_PORT                    P1OUT
 #define LED_DDR                     P1DIR
 #define SET_LED_AS_OUTPUT           LED_DDR |= LED_BIT

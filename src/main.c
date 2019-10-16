@@ -12,7 +12,16 @@
 #include "UART.h"
 #include "help.h"
 #include "LED.h"
+#include "clock.h"
 
 void main(void){
+    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+    Configure_Clock();
 
+    Configure_LED();
+
+    while(1){
+        TOGGLE_LED;
+        _delay_cycles(1000000);
+    }
 }
