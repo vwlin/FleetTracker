@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "FSM.h"
+//#include "protocol.h"
 
 /*
  * uses UCA1
@@ -97,27 +97,5 @@ int fputs(const char *_ptr, register FILE *_fp);
  * Returns the size of the string read in bytes
  */
 uint32_t reads(uint8_t * buf, uint32_t maxSize);
-
-/*
- * readm
- * Reads a file from the terminal into memory
- *
- * Parameters:
- *  maxSize - the maximum possible size of the file to be stored in memory
- *  startAddress - the first address in memory where the file will be stored
- *
- * Returns the size of the file read in bytes
- */
-uint32_t readm(uint32_t maxSize, uint32_t startAddress);
-
-/*
- * printFile
- * Print a file from memory to the terminal
- *
- * Parameters:
- *  size - size of the file to print
- *  startAddress - the first address in memory where the file is stored
- */
-void printFile(uint32_t size, uint32_t startAddress);
 
 #endif
