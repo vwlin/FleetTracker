@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-typedef enum {Listen, Greet, WaitForDirections, SendToClient, ReceiveFromClient, ConfirmHostToClientTransfer} HostState; // handshake
+typedef enum {Listen, Greet} HomeState; // handshake
 typedef enum {Ping, WaitForGreeting, GiveDirections, SendToHost, ReceiveFromHost} ClientState; // handshake
 typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 
@@ -8,7 +8,7 @@ extern int maxRetransmit; // handshake
 extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-int8_t Home_WaitForConnection(uint8_t * userID, uint32_t * sizes, uint32_t * EEPROMaddresses, uint32_t * FLASHaddresses, uint8_t * numFiles){
+int8_t Home_WaitForConnection(uint8_t * userID){
     uint8_t i;
 
     uint8_t receivedCode[1] = {0};

@@ -33,12 +33,7 @@
  * Handshake from home node perspective: wait for a roamer to establish a connection
  *
  * Parameters:
- *  userID - length 1 buffer that will hold the user ID of client sending file; ignored if host sending file
- *  sizes - if transmitting, sizes of files to be sent in bytes, length numFiles;
- *          if receiving, size of file to be received in bytes, length 1
- *  EEPROMaddresses - if transmitting, the locations in EEPROM where the files are stored, length numFiles
- *  FLASHaddresses - if transmitting, the locations in FLASH where the files' information are stored, length numFiles
- *  numFiles - if transmitting, number of files to be send; if receiving, 1
+ *  userID - length 1 buffer that will hold the ID of the roaming node sending the data
  *
  * Returns code:
  *  if client is sending file, return 1 (CLIENT_SEND);
@@ -47,7 +42,7 @@
  *  if no file available, return -2 (FILE_UNAVAILABLE)
  */
 
-int8_t Home_WaitForConnection(uint8_t * userID, uint32_t * sizes, uint32_t * EEPROMaddresses, uint32_t * FLASHaddresses, uint8_t * numFiles);
+int8_t Home_WaitForConnection(uint8_t * userID);
 
 
 /*
