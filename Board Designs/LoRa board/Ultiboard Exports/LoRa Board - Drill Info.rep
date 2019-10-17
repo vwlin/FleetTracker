@@ -1,0 +1,26 @@
+ULTIBOARD DRILL REPORT
+
+Design: LoRa Board
+
+DRILL FILE SETTINGS
+Excellon 2, Absolute, Inch, 2.4 
+
+
+DEFINITION COPPER LAYERS
+Copper Top
+Copper Inner 1
+Copper Inner 2
+Copper Bottom
+
+
+--------------------------------------------------------------------
+
+DRILLFILE                                   LAMINATION
+LoRa Board - Copper Top-Copper Bottom.drl   Copper Top .. Copper Bottom
+
+TOOL     SIZE   TYPE  COUNT
+   1   0.0630    PTH     13
+   2   0.0120    PTH    102
+   3   0.0350    PTH     27
+   4   0.0392    PTH      5
+   5   0.1000   NPTH      2
