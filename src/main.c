@@ -15,17 +15,12 @@
 
 /* CHOOSE ONE
  *
- * CLIENT provides all commands. Establishes a connection with the HOST and
- * can send a file to the host or request a file from the host.
- * Must know the userID of the file they wish to receive.
- *
- * HOST listens for the client and only responds once the client has attempted to establish a connection
- * Does not need to know any information.
- * Can receive a file from the client and then send it back to the client
+ * ROAMING_NODE
+ * HOME_NODE
  */
 
-#define CLIENT
-#define HOST
+#define ROAMING_NODE
+//#define HOME_NODE
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -37,9 +32,9 @@ void main(void){
     Configure_LORA();
 
     // Check for errors in the LoRa chip
-    errors = LORA_GetDeviceErrors();
+    uint16_t errors = LORA_GetDeviceErrors();
     if(errors != 0){
-        PRINTF("\r\nErrors found. Restart the device.");
+        printf("\r\nErrors found. Restart the device.");
         while(1);
     }
 
@@ -73,7 +68,19 @@ void main(void){
     }
     */
 
-    while(1){
+    uint8_t i;
+    uint8_t data[MAX_PAYLOAD] = {0};
 
+    while(1){
+        #ifdef ROAMING_NODE
+            for(i = 0; i < MAX_PAYLOAD; i++){
+                data[i] = i;
+            }
+            Roamer_EstablishConnection(data, MAX_PAYLOAD);
+        #endif
+
+        #ifdef HOME_NODE
+            Home_WaitForConnection();
+        #endif
     }
 }

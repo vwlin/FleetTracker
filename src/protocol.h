@@ -35,7 +35,7 @@
  * else 0
  */
 
-uint8_t Home_WaitForConnection(uint8_t * userID);
+uint8_t Home_WaitForConnection();//uint8_t * userID); TODO <-
 
 
 /*
@@ -64,10 +64,8 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
 #define GIVEUP_TIMEOUT              4 * TIMEOUT_VALUE
 #define GIVEUP_RECEIVE              6
 
-#define MAX_FILES_STORED            3            // maximum number of files Host can store - can never be greater than 63 (bounded by LORA buffer size, assuming 32-bit size)
-#define MAX_FILE_SIZE               42180        // maximum size of the file in bytes, for 3 files
+#define MAX_PAYLOAD                 14
 #define MAX_USERID                  255          // maximum user ID possible
-#define START_ADDRESS               0x00         //start address of the EEPROM
 
 #define MAX_FILE_SIZE_BYTES         4            // maximum bytes needed to represent the size of the file
 #define MAX_USERID_BYTES            1            // maximum bytes needed to represent the user ID

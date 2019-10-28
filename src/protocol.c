@@ -4,11 +4,11 @@ typedef enum {Listen, Greet, Receive} HomeState; // handshake
 typedef enum {Ping, WaitForGreeting, Transmit} RoamerState; // handshake
 typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 
-extern int maxRetransmit; // handshake
-extern int maxRetransmit; // data transfer
+//extern int maxRetransmit; // handshake
+//extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-uint8_t Home_WaitForConnection(uint8_t * userID){
+uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info that is received
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
     uint16_t irqStatus;
@@ -90,10 +90,10 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
                 else if (irqStatus == IRQ_TIMEOUT){
                     if (retransmitCount < GIVEUP){
                         nextState = Ping;
-                        retransmitCount++;
-                        if (retransmitCount > maxRetransmit){
-                            maxRetransmit = retransmitCount;
-                        }
+                        //retransmitCount++;
+                        //if (retransmitCount > maxRetransmit){
+                        //    maxRetransmit = retransmitCount;
+                        //}
                     }
                     else
                         return 1;
@@ -164,10 +164,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     //verify ACK
                     if (sequenceNumber[0] == (0x00)){
 
-                        if (retransmitCount > maxRetransmit){
-                            maxRetransmit = retransmitCount;
-                        }
-                        retransmitCount = 0;
+                        //if (retransmitCount > maxRetransmit){
+                        //    maxRetransmit = retransmitCount;
+                        //}
+                        //retransmitCount = 0;
 
                         //increment count based on a successful, acknowledged transmission
                         count++;
@@ -185,9 +185,9 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     LORA_ClearIrqStatus(0x0262);
                     if (previousState == currentState){
                         retransmitCount++;
-                        if (retransmitCount > maxRetransmit){
-                            maxRetransmit = retransmitCount;
-                        }
+                        //if (retransmitCount > maxRetransmit){
+                        //    maxRetransmit = retransmitCount;
+                        //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
@@ -233,10 +233,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     LORA_ReadBuffer(0x00, sequenceNumber, 1); //read ACK
                     //verify ACK
                     if (sequenceNumber[0] == (0x01)){
-                        if (retransmitCount > maxRetransmit){
-                            maxRetransmit = retransmitCount;
-                        }
-                        retransmitCount = 0;
+                        //if (retransmitCount > maxRetransmit){
+                        //    maxRetransmit = retransmitCount;
+                        //}
+                        //retransmitCount = 0;
 
                         count++;     //increment count based on a successful, acknowledged transmission
                         nextState = Send0;
@@ -251,10 +251,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
                     LORA_ClearIrqStatus(0x0262);
                     if (previousState == currentState){
-                        retransmitCount++;
-                        if (retransmitCount > maxRetransmit){
-                            maxRetransmit = retransmitCount;
-                        }
+                        //retransmitCount++;
+                        //if (retransmitCount > maxRetransmit){
+                        //    maxRetransmit = retransmitCount;
+                        //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
@@ -291,7 +291,7 @@ uint8_t ReceiveData(){
     int numErrors = 0;
     uint8_t previousSeqNum = 0x01; // assuming first sequence number is always 0
 
-    uint8_t data[14] = {0}; // received data to be stored here      // TODO: make variable instead of 14
+    uint8_t data[MAX_PAYLOAD] = {0}; // received data to be stored here      // TODO: make variable instead of MAX_PAYLOAD
     uint8_t sequenceNumber[1] = {0}; // for sequence number
 
     while (count <= totalPackets){
@@ -312,11 +312,11 @@ uint8_t ReceiveData(){
             // If not a repeat, put the packet in the file
             if (sequenceNumber[0] == !(previousSeqNum)){
                 //read the buffer (don't read sequence number)
-                LORA_ReadBuffer(0x01, data, 14);                // TODO: make variable instead of 14
+                LORA_ReadBuffer(0x01, data, MAX_PAYLOAD);                // TODO: make variable instead of MAX_PAYLOAD
                 previousSeqNum = sequenceNumber[0];
 
                 // print data to terminal LATER send to a pc
-                for(i = 0; i < 14; i++){            // TO UPDATE    // TODO: make variable instead of 14
+                for(i = 0; i < MAX_PAYLOAD; i++){            // TO UPDATE    // TODO: make variable instead of MAX_PAYLOAD
                     UART_SendByte(data[i]);
                 }
 
