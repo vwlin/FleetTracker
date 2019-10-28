@@ -174,7 +174,6 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                         nextState = Send1;
                         break;
                     }
-
                     else {
                         nextState = WaitACK0;
                         break;
@@ -184,14 +183,12 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 //if timeout, resend current frame then wait for ACK0
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
                     LORA_ClearIrqStatus(0x0262);
-
                     if (previousState == currentState){
                         retransmitCount++;
                         if (retransmitCount > maxRetransmit){
                             maxRetransmit = retransmitCount;
                         }
                     }
-
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
                         LORA_WriteBuffer(0x00, seq0, 0x01);
@@ -234,7 +231,6 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     LORA_ClearIrqStatus(0x0262);
                     uint8_t sequenceNumber[1] = {0};
                     LORA_ReadBuffer(0x00, sequenceNumber, 1); //read ACK
-
                     //verify ACK
                     if (sequenceNumber[0] == (0x01)){
                         if (retransmitCount > maxRetransmit){
@@ -251,7 +247,6 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                         break;
                     }
                 }
-
                 //if timeout, resend current frame then wait for ACK0
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
                     LORA_ClearIrqStatus(0x0262);
@@ -274,7 +269,6 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     }
                     else return 1;
                 }
-
                 else{
                     nextState = WaitACK1;
                     break;
@@ -297,7 +291,7 @@ uint8_t ReceiveData(){
     int numErrors = 0;
     uint8_t previousSeqNum = 0x01; // assuming first sequence number is always 0
 
-    uint8_t data[15] = {0}; // received data to be stored here
+    uint8_t data[14] = {0}; // received data to be stored here      // TODO: make variable instead of 14
     uint8_t sequenceNumber[1] = {0}; // for sequence number
 
     while (count <= totalPackets){
@@ -318,11 +312,11 @@ uint8_t ReceiveData(){
             // If not a repeat, put the packet in the file
             if (sequenceNumber[0] == !(previousSeqNum)){
                 //read the buffer (don't read sequence number)
-                LORA_ReadBuffer(0x01, data, 15);
+                LORA_ReadBuffer(0x01, data, 14);                // TODO: make variable instead of 14
                 previousSeqNum = sequenceNumber[0];
 
                 // print data to terminal LATER send to a pc
-                for(i = 0; i < 16; i++){            // TO UPDATE
+                for(i = 0; i < 14; i++){            // TO UPDATE    // TODO: make variable instead of 14
                     UART_SendByte(data[i]);
                 }
 
