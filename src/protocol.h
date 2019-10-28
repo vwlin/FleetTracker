@@ -43,19 +43,14 @@ uint8_t Home_WaitForConnection(uint8_t * userID);
  * Handshake from roaming node perspective: ping home node to establish a connection
  *
  * Parameters:
- *  transmit - 1 if transmitting file, 0 if receiving file
- *  size - if transmitting, size of file to be sent in bytes, length 1;
- *          if receiving, sizes of files to be received in bytes, length numFiles
- *  userID - length 1 buffer that will hold the user ID of the client sending file or user ID of requested files
- *  numFiles - if transmitting, 1; if receiving, number of files to be received
+ * data - pointer to array of 8 bit data
+ * size - size of data to transmit in bytes
  *
  * Returns code:
- *  if client is sending file, return 1 (CLIENT_SEND);
- *  if host is sending file, return 0 (HOST_SEND);
- *  if handshake failed, return -1 (HANDSHAKE_FAILED);
- *  if no file available, return -2 (FILE_UNAVAILABLE)
+ * 1 if failed
+ * else 0
  */
-int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * userID, uint8_t * numFiles);
+uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
 
 
 /*

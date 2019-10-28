@@ -1,7 +1,7 @@
 #include "protocol.h"
 
 typedef enum {Listen, Greet, Receive} HomeState; // handshake
-typedef enum {Ping, WaitForGreeting, GiveDirections, SendToHost, ReceiveFromHost} RoamerState; // handshake
+typedef enum {Ping, WaitForGreeting, Transmit} RoamerState; // handshake
 typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 
 extern int maxRetransmit; // handshake
@@ -51,12 +51,9 @@ uint8_t Home_WaitForConnection(uint8_t * userID){
     }
 }
 
-int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * userID, uint8_t * numFiles){
-    int i;
+uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
-    uint8_t sendCodeAndSize[2+MAX_FILE_SIZE_BYTES*MAX_FILES_STORED] = {0};
-    uint8_t sendCodeAndUserID[3] = {0};
     uint16_t irqStatus;
 
     uint8_t flags[1] = {0};
@@ -85,7 +82,7 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
             // Greeting received with no errors and before timeout
             if(irqStatus == IRQ_RXDONE){
                 if(*receivedCode == PASSWORD)
-                    nextState = GiveDirections;
+                    nextState = Transmit;
                 else
                     nextState = Ping; // Retransmit "Hello" ping
             }
@@ -99,7 +96,7 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
                     }
                 }
                 else
-                    return HANDSHAKE_FAILED;
+                    return 1;
             }
             // Frame received with error
             else{
@@ -107,93 +104,14 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
             }
             break;
 
-        // Send client a "transmit" or "receive" directive
-        case GiveDirections:
-
-            //if the client is transmitting, send the size of the file for the host to receive in 4 bytes along with the sender's user ID
-            if(transmit){
-                sendCodeAndSize[0] = CLIENT_TO_HOST;
-                deconstructToArray(size[0], sendCodeAndSize, 1, 4);
-                sendCodeAndSize[5] = userID[0];
-                LORA_TransmitAndWait(0x00, sendCodeAndSize, 6, 0, IRQ_TXDONE);
-                nextState = SendToHost;
-            }
-
-            //if the client is receiving from the host, send the userID to receive from and whether or not to delete the file after reception
-            else{
-                sendCodeAndUserID[0] = HOST_TO_CLIENT;
-                sendCodeAndUserID[1] = userID[0];
-                sendCodeAndUserID[2] = ( (flags[0] & DELETE_FLAG) == DELETE_FLAG );
-                LORA_TransmitAndWait(0x00, sendCodeAndUserID, 3, 0, IRQ_TXDONE);
-                nextState = ReceiveFromHost;
-            }
-            break;
-
-        //if the OK is received, the client can exit this state and move on to transmitting
-        case SendToHost:
-            irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
-
-            // Greeting received with no errors and before timeout
-            if(irqStatus == IRQ_RXDONE){
-                if(*receivedCode == OK)
-                    return CLIENT_SEND;
-                else
-                    nextState = GiveDirections; // Retransmit directive
-            }
-            // Frame received with error or timeout occurred
-            else{
-                if (retransmitCount < GIVEUP){
-                    nextState = GiveDirections;
-                    retransmitCount++;
-                    if (retransmitCount > maxRetransmit){
-                        maxRetransmit = retransmitCount;
-                    }
-                }
-                else
-                    return CLIENT_SEND;   // assume no problems, but that host has already closed connection; if problems, they will be caught in file transaction
-            }
-            break;
-
-        //if the file with requested userID exists, client can move on receiving from the host
-        case ReceiveFromHost:
-            irqStatus = LORA_WaitForReceive(0x00, sendCodeAndSize, 2+MAX_FILE_SIZE_BYTES*MAX_FILES_STORED, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
-
-            // Confirmation received with no errors and before timeout
-            if(irqStatus == IRQ_RXDONE){
-                if(sendCodeAndSize[0] == NO_FILES)
-                    return FILE_UNAVAILABLE;
-                else if(sendCodeAndSize[0] == FILES_AVIALABLE){
-                    //store the information
-                    numFiles[0] = sendCodeAndSize[1];   // will change - this is total number of files; doesn't differentiate between user IDs
-                    for(i = 0; i < numFiles[0]; i++){
-                        size[i] = reconstructTo32Bits(sendCodeAndSize, 2+MAX_FILE_SIZE_BYTES*i, 4);
-                    }
-
-                    receivedCode[0] = OK;
-                    LORA_TransmitAndWait(0x00, receivedCode, 1, 0, IRQ_TXDONE);
-
-                    return HOST_SEND;
-                }
-                else
-                    nextState = GiveDirections; // Retransmit directive
-            }
-            // Frame received with error or timeout occurred
-            else{
-                if (retransmitCount < GIVEUP){
-                    nextState = GiveDirections;
-                    retransmitCount++;
-                    if (retransmitCount > maxRetransmit){
-                        maxRetransmit = retransmitCount;
-                     }
-                }
-                else
-                    return HANDSHAKE_FAILED;
-                }
+        // transmit data
+        case Transmit:
+            return TransmitData(data, size);
+            // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
+            // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
         }
-
         currentState = nextState;
     }
-
 }
 
 uint8_t TransmitData(uint8_t * data, uint8_t size){
