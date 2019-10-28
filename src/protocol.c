@@ -1,14 +1,14 @@
 #include "protocol.h"
 
 typedef enum {Listen, Greet, Receive} HomeState; // handshake
-typedef enum {Ping, WaitForGreeting, GiveDirections, SendToHost, ReceiveFromHost} ClientState; // handshake
+typedef enum {Ping, WaitForGreeting, GiveDirections, SendToHost, ReceiveFromHost} RoamerState; // handshake
 typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 
 extern int maxRetransmit; // handshake
 extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-int8_t Home_WaitForConnection(uint8_t * userID){
+uint8_t Home_WaitForConnection(uint8_t * userID){
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
     uint16_t irqStatus;
@@ -33,7 +33,7 @@ int8_t Home_WaitForConnection(uint8_t * userID){
                 }
                 break;
 
-                // Send "Hello" response to client
+            // Send "Hello" response to client
             case Greet:
                 sendCode[0] = PASSWORD;
                 LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
@@ -41,9 +41,11 @@ int8_t Home_WaitForConnection(uint8_t * userID){
                 nextState = Receive; // Continue with conversation
                 break;
 
-                // Receive data
+            // Receive data
             case Receive:
                 return ReceiveData();
+                // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
+                // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
         currentState = nextState;
     }
@@ -60,8 +62,8 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
     uint8_t flags[1] = {0};
     Flash_ReadArray(INFOA_START, flags, 1);
 
-    ClientState currentState = Ping;
-    ClientState nextState;
+    RoamerState currentState = Ping;
+    RoamerState nextState;
 
     int retransmitCount = 0;
 
@@ -194,7 +196,7 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
 
 }
 
-int TransmitData(uint8_t * data, uint8_t size){
+uint8_t TransmitData(uint8_t * data, uint8_t size){
 
     //uint8_t bufData[MAX_BUFFER_SIZE-1] = {0};
 
@@ -398,7 +400,7 @@ int TransmitData(uint8_t * data, uint8_t size){
 }
 
 
-int ReceiveData(){
+uint8_t ReceiveData(){
     int totalPackets = 1; //delete later
     int count = 1;
     int numErrors = 0;

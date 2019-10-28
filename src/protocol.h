@@ -23,11 +23,6 @@
 #define FILES_AVIALABLE (0x0F)
 #define NO_FILES        (0xF0)
 
-#define CLIENT_SEND                 1
-#define HOST_SEND                   0
-#define HANDSHAKE_FAILED           -1
-#define FILE_UNAVAILABLE           -2
-
 /*
  * Home_WaitForConnection
  * Handshake from home node perspective: wait for a roamer to establish a connection
@@ -36,13 +31,11 @@
  *  userID - length 1 buffer that will hold the ID of the roaming node sending the data
  *
  * Returns code:
- *  if client is sending file, return 1 (CLIENT_SEND);
- *  if host is sending file, return 0 (HOST_SEND);
- *  if handshake failed, return -1 (HANDSHAKE_FAILED);
- *  if no file available, return -2 (FILE_UNAVAILABLE)
+ * 1 if failed
+ * else 0
  */
 
-int8_t Home_WaitForConnection(uint8_t * userID);
+uint8_t Home_WaitForConnection(uint8_t * userID);
 
 
 /*
@@ -97,7 +90,7 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
  *
  * Return code: 1 if there was an error, 0 if transmitted successfully
  */
-int TransmitData(uint8_t * data, uint8_t size);
+uint8_t TransmitData(uint8_t * data, uint8_t size);
 
 
 /* ReceiveFile
@@ -106,6 +99,6 @@ int TransmitData(uint8_t * data, uint8_t size);
  *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-int ReceiveData();
+uint8_t ReceiveData();
 
 #endif /* NODE_H_ */
