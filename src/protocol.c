@@ -115,7 +115,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
 }
 
 uint8_t TransmitData(uint8_t * data, uint8_t size){
-    int totalPackets = 1;
+    int totalPackets = 1; // delete later
 
     State currentState;
     State previousState;
@@ -290,13 +290,17 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
 
 uint8_t ReceiveData(){
+    uint8_t i;
     int totalPackets = 1; //delete later
+
     int count = 1;
     int numErrors = 0;
-    uint8_t previousSeqNum = 0x01; //assuming first sequence number is always 0
+    uint8_t previousSeqNum = 0x01; // assuming first sequence number is always 0
+
+    uint8_t data[15] = {0}; // received data to be stored here
+    uint8_t sequenceNumber[1] = {0}; // for sequence number
 
     while (count <= totalPackets){
-
         // enable rxdone, header CRC, payload CRC, timeout IRQs
         LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
         LORA_SetRx(GIVEUP_TIMEOUT);
@@ -314,10 +318,13 @@ uint8_t ReceiveData(){
             // If not a repeat, put the packet in the file
             if (sequenceNumber[0] == !(previousSeqNum)){
                 //read the buffer (don't read sequence number)
-                LORA_ReadBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
+                LORA_ReadBuffer(0x01, data, 15);
                 previousSeqNum = sequenceNumber[0];
 
-                printf(bufData); //??
+                // print data to terminal LATER send to a pc
+                for(i = 0; i < 16; i++){            // TO UPDATE
+                    UART_SendByte(data[i]);
+                }
 
                 count++;
             }
