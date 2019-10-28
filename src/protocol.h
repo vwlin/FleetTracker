@@ -89,26 +89,23 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
 #define MAX_USERID_CHAR_LEN         3            // maximum number of digits in base 10 (as a string)
 
 /* TransmitFile
- * Sends a file and waits for ACK after each frame sent, retransmits if errors occurred the first time or if ACK is lost
+ * Sends data and waits for ACK after each frame sent, retransmits if errors occurred the first time or if ACK is lost
  *
  * Parameters:
- * startAddress - address in EEPROM to start storing file
- * size - size of file to transmit
+ * data - pointer to array of 8 bit data
+ * size - size of data to transmit in bytes
  *
  * Return code: 1 if there was an error, 0 if transmitted successfully
  */
-int TransmitFile(uint32_t startAddress, uint32_t size);
+int TransmitData(uint8_t * data, uint8_t size);
 
 
 /* ReceiveFile
- * Receives a file, sends ACK for each frame received, keeps track of sequence of frames to account for retransmissions
- *
- * Parameters:
- * startAddress - address in EEPROM to start reading file
- * size - size of file to receive
+ * Receives data, sends ACK for each frame received, keeps track of sequence of frames to account for retransmissions
+ * Prints data to terminal
  *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-int ReceiveFile(uint32_t startAddress, uint32_t size);
+int ReceiveData();
 
 #endif /* NODE_H_ */

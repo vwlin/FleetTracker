@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-typedef enum {Listen, Greet} HomeState; // handshake
+typedef enum {Listen, Greet, Receive} HomeState; // handshake
 typedef enum {Ping, WaitForGreeting, GiveDirections, SendToHost, ReceiveFromHost} ClientState; // handshake
 typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 
@@ -9,138 +9,42 @@ extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
 int8_t Home_WaitForConnection(uint8_t * userID){
-    uint8_t i;
-
     uint8_t receivedCode[1] = {0};
-    uint8_t receivedSize[MAX_FILE_SIZE_BYTES+MAX_USERID_BYTES] = {0};
-    uint8_t receivedID[MAX_USERID_BYTES] = {0};
     uint8_t sendCode[1] = {0};
-    uint8_t setInfo[3] = {0};
-    uint8_t sendCodeAndNumFiles[2+MAX_FILE_SIZE_BYTES*MAX_FILES_STORED] = {0}; // code, numfiles, and 4-byte size for each file
     uint16_t irqStatus;
 
-    HostState currentState = Listen;
-    HostState nextState;
-
-    int retransmitCount = 0;
+    HomeState currentState = Listen;
+    HomeState nextState;
 
     while(1){
         switch (currentState){
 
-        // Wait for client to send "Hello" ping
-        case Listen:
-            irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
+            // Wait for client to send "Hello" ping
+            case Listen:
+                irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
 
-            // Ping received with no errors, and password is correct
-            if( (irqStatus == IRQ_RXDONE) && (*receivedCode == PASSWORD) ){
-                nextState = Greet; // Continue with conversation
-            }
-            // Ping received with errors password is incorrect
-            else{
-                nextState = Listen; // Keep Listening
-            }
-            break;
-
-        // Send "Hello" response to client
-        case Greet:
-            sendCode[0] = PASSWORD;
-            LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
-
-            nextState = WaitForDirections; // Continue with conversation
-            break;
-
-        // Wait for client to specify transmission or reception
-        case WaitForDirections:
-            irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, GIVEUP_TIMEOUT, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
-
-            // Directive received with no errors and before timeout
-            if(irqStatus == IRQ_RXDONE){
-                if(*receivedCode == CLIENT_TO_HOST)
-                    nextState = ReceiveFromClient;
-                else if (*receivedCode == HOST_TO_CLIENT)
-                    nextState = SendToClient;
-                else
-                    nextState = WaitForDirections; // Wait for retransmission of directions
-            }
-            else if (irqStatus == IRQ_TIMEOUT){
-                return HANDSHAKE_FAILED;
-            }
-            // Frame received with error
-            else{
-                nextState = WaitForDirections; // Wait for retransmission of directions
-            }
-            break;
-
-        //if the user ID matches a file on the host, move on to confirm host to client transfer
-        case SendToClient:
-            // Get user ID
-            LORA_ReadBuffer(0x01, receivedID, MAX_USERID_BYTES+1);
-            userID[0] = receivedID[0];
-
-            Flash_ReadArray(INFOA_START, setInfo, 3);
-            setInfo[2] = receivedID[1];
-            Flash_WriteArray(INFOA_START, setInfo, 3);    // 1 to delete, 0 to save
-
-            // Check if you have any files from user ID; assume user ID of 0 or 255 means that no file is in the array located at this address
-            numFiles[0] = Flash_SearchForUID(userID[0], EEPROMaddresses, sizes, FLASHaddresses); // also fills EEPROMaddresses, sizes, and FLASHaddresses for use in main
-            if( numFiles[0] ){
-                //send a message to the client containing: the OK that the file is there, the number of files that exist under that userID (1), the size of each file
-                sendCodeAndNumFiles[0] = FILES_AVIALABLE;
-                sendCodeAndNumFiles[1] = numFiles[0];
-
-                // fill size bits in sendCodeAndNumFiles
-                for(i = 0; i < numFiles[0]; i++){
-                    deconstructToArray(sizes[i], sendCodeAndNumFiles, i*4+2, 4);
+                // Ping received with no errors, and password is correct
+                if( (irqStatus == IRQ_RXDONE) && (*receivedCode == PASSWORD) ){
+                    nextState = Greet; // Continue with conversation
                 }
+                // Ping received with errors password is incorrect
+                else{
+                    nextState = Listen; // Keep Listening
+                }
+                break;
 
-                LORA_TransmitAndWait(0x00, sendCodeAndNumFiles, 2+MAX_FILE_SIZE_BYTES*numFiles[0], 0, IRQ_TXDONE);
-                nextState = ConfirmHostToClientTransfer;
-            }
-            else{ // no files available
-                *sendCode = NO_FILES;
+                // Send "Hello" response to client
+            case Greet:
+                sendCode[0] = PASSWORD;
                 LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
-                return FILE_UNAVAILABLE;
-            }
 
-        //if the client sends OK, the host can exit this function and move on to send the file
-        case ConfirmHostToClientTransfer:
-            irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
+                nextState = Receive; // Continue with conversation
+                break;
 
-            // Greeting received with no errors and before timeout
-            if(irqStatus == IRQ_RXDONE){
-                if(*receivedCode == OK)
-                    return HOST_SEND;
-                else
-                    nextState = SendToClient; // Retransmit yes/no
-            }
-            // Frame received with error or timeout occurred
-            else{
-                if (retransmitCount < GIVEUP){
-                    nextState = SendToClient;
-                    retransmitCount++;
-                    if (retransmitCount > maxRetransmit){
-                        maxRetransmit = retransmitCount;
-                    }
-                }
-                else
-                    return HOST_SEND;   // assume no problems, but that host has already closed connection; if problems, they will be caught in file transaction
-            }
-            return HOST_SEND;
-
-        //send OK to tell the client to move on and transfer the file
-        case ReceiveFromClient:
-            // Get size as a single number
-            LORA_ReadBuffer(0x01, receivedSize, MAX_FILE_SIZE_BYTES+MAX_USERID_BYTES);
-            sizes[0] = reconstructTo32Bits(receivedSize, 0, 4);
-            userID[0] = receivedSize[4]; // Get user ID
-
-            // Send "OK" back to client
-            receivedCode[0] = OK;
-            LORA_TransmitAndWait(0x00, receivedCode, 1, 0, IRQ_TXDONE);
-
-            return CLIENT_SEND;
+                // Receive data
+            case Receive:
+                return ReceiveData();
         }
-
         currentState = nextState;
     }
 }
@@ -170,7 +74,6 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
             LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
 
             nextState = WaitForGreeting;
-
             break;
 
         // Wait for client to respond with "Hello" greeting
@@ -291,14 +194,9 @@ int8_t Roamer_EstablishConnection(uint8_t transmit, uint32_t * size, uint8_t * u
 
 }
 
-int TransmitFile(uint32_t startAddress, uint32_t size){
-    //determine number of packets and initialize data array
-    uint16_t numWholePackets = size / (MAX_BUFFER_SIZE-1);
-    uint8_t extraPacket = ( size % (MAX_BUFFER_SIZE-1) ) > 0;
-    uint16_t totalPackets = numWholePackets + extraPacket;
-    uint16_t bytesInExtraPacket = size - (numWholePackets * (MAX_BUFFER_SIZE - 1));
-    uint8_t bufData[MAX_BUFFER_SIZE-1] = {0};
-    uint32_t currentAddress = startAddress;
+int TransmitData(uint8_t * data, uint8_t size){
+
+    //uint8_t bufData[MAX_BUFFER_SIZE-1] = {0};
 
     State currentState;
     State previousState;
@@ -313,9 +211,6 @@ int TransmitFile(uint32_t startAddress, uint32_t size){
     uint8_t * seq0 = &seq0Val;
     uint8_t * seq1 = &seq1Val;
 
-    //put the initial page in the buffer (bytes 1-255)
-    //Memory_ReadFromArray(currentAddress + 2, bufData, MAX_PAGE_SIZE - 2);
-
     //transmit all packets
     while(count <= totalPackets){
 
@@ -326,7 +221,7 @@ int TransmitFile(uint32_t startAddress, uint32_t size){
 
                 //add file to array bufData
                 LORA_WriteBuffer(0x00, seq0, 0x01);
-                LORA_WriteBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
+                LORA_WriteBuffer(0x01, data, size);
                 //enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                 LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
@@ -503,16 +398,8 @@ int TransmitFile(uint32_t startAddress, uint32_t size){
 }
 
 
-int ReceiveFile(uint32_t startAddress, uint32_t size){
-    uint16_t numWholePackets = size / (MAX_BUFFER_SIZE-1);
-    uint8_t extraPacket = ( size % (MAX_BUFFER_SIZE-1) ) > 0;
-    uint16_t totalPackets = numWholePackets + extraPacket;
-    uint16_t bytesInExtraPacket = size - (numWholePackets * (MAX_BUFFER_SIZE - 1));
-
-    uint32_t currentAddress = startAddress;
-    uint8_t sequenceNumber[1] = {0}; // for sequence number
-    uint8_t bufData[MAX_BUFFER_SIZE-1] = {0}; //for received packet to go in memory page
-
+int ReceiveData(){
+    int totalPackets = 1; //delete later
     int count = 1;
     int numErrors = 0;
     uint8_t previousSeqNum = 0x01; //assuming first sequence number is always 0
@@ -539,10 +426,8 @@ int ReceiveFile(uint32_t startAddress, uint32_t size){
                 LORA_ReadBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
                 previousSeqNum = sequenceNumber[0];
 
-                //if (count == totalPackets) Memory_WriteToArray(currentAddress + 2, bufData, bytesInExtraPacket);
-                //Memory_WriteToArray(currentAddress + 2, bufData, MAX_PAGE_SIZE -2);
+                printf(bufData); //??
 
-                currentAddress = currentAddress + MAX_PAGE_SIZE;
                 count++;
             }
             else{
