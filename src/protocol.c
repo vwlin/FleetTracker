@@ -67,56 +67,55 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
     while(1){
         switch(currentState){
 
-        // Ping host with password
-        case Ping:
-            sendCode[0] = PASSWORD;
-            LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
+            // Ping host with password
+            case Ping:
+                sendCode[0] = PASSWORD;
+                LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
 
-            nextState = WaitForGreeting;
-            break;
+                nextState = WaitForGreeting;
+                break;
 
-        // Wait for client to respond with "Hello" greeting
-        case WaitForGreeting:
-            irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
+            // Wait for client to respond with "Hello" greeting
+            case WaitForGreeting:
+                irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
 
-            // Greeting received with no errors and before timeout
-            if(irqStatus == IRQ_RXDONE){
-                if(*receivedCode == PASSWORD)
-                    nextState = Transmit;
-                else
-                    nextState = Ping; // Retransmit "Hello" ping
-            }
-            // Timeout occurred
-            else if (irqStatus == IRQ_TIMEOUT){
-                if (retransmitCount < GIVEUP){
-                    nextState = Ping;
-                    retransmitCount++;
-                    if (retransmitCount > maxRetransmit){
-                        maxRetransmit = retransmitCount;
-                    }
+                // Greeting received with no errors and before timeout
+                if(irqStatus == IRQ_RXDONE){
+                    if(*receivedCode == PASSWORD)
+                        nextState = Transmit;
+                    else
+                        nextState = Ping; // Retransmit "Hello" ping
                 }
-                else
-                    return 1;
-            }
-            // Frame received with error
-            else{
-                nextState = Ping; // Retransmit "Hello" ping
-            }
-            break;
+                // Timeout occurred
+                else if (irqStatus == IRQ_TIMEOUT){
+                    if (retransmitCount < GIVEUP){
+                        nextState = Ping;
+                        retransmitCount++;
+                        if (retransmitCount > maxRetransmit){
+                            maxRetransmit = retransmitCount;
+                        }
+                    }
+                    else
+                        return 1;
+                }
+                // Frame received with error
+                else{
+                    nextState = Ping; // Retransmit "Hello" ping
+                }
+                break;
 
-        // transmit data
-        case Transmit:
-            return TransmitData(data, size);
-            // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
-            // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
+            // transmit data
+            case Transmit:
+                return TransmitData(data, size);
+                // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
+                // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
         }
         currentState = nextState;
     }
 }
 
 uint8_t TransmitData(uint8_t * data, uint8_t size){
-
-    //uint8_t bufData[MAX_BUFFER_SIZE-1] = {0};
+    int totalPackets = 1;
 
     State currentState;
     State previousState;
@@ -126,19 +125,17 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
     int count = 1;
     int retransmitCount = 0;
 
+    // Prepare sequence values for writing into LoRa buffer
     uint8_t seq0Val = 0;
     uint8_t seq1Val = 1;
     uint8_t * seq0 = &seq0Val;
     uint8_t * seq1 = &seq1Val;
 
-    //transmit all packets
+    // Transmit all packets
     while(count <= totalPackets){
-
         switch (currentState){
-
             //Send the odd numbered packets (with sequence bit 0)
             case Send0:
-
                 //add file to array bufData
                 LORA_WriteBuffer(0x00, seq0, 0x01);
                 LORA_WriteBuffer(0x01, data, size);
@@ -148,12 +145,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
                 LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
                 nextState = WaitACK0;
-
             break;
 
             //data has been transmitted, need to wait for receiver to send acknowledgment
             case WaitACK0:
-
                 LORA_SetRx(TIMEOUT_VALUE);
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
@@ -173,11 +168,6 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                             maxRetransmit = retransmitCount;
                         }
                         retransmitCount = 0;
-
-                        //update the information in bufData
-                        currentAddress = currentAddress + MAX_PAGE_SIZE;
-                        //if (count == totalPackets) Memory_ReadFromArray(currentAddress + 2, bufData, bytesInExtraPacket);
-                        //else Memory_ReadFromArray(currentAddress + 2, bufData, MAX_PAGE_SIZE - 2);
 
                         //increment count based on a successful, acknowledged transmission
                         count++;
@@ -205,17 +195,15 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
                         LORA_WriteBuffer(0x00, seq0, 0x01);
-                        LORA_WriteBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
+                        LORA_WriteBuffer(0x01, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
                         while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
                         LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
                         nextState = WaitACK0;
                     }
-
                     else return 1;
                 }
-
                 else {
                     nextState = WaitACK0;
                     break;
@@ -223,21 +211,18 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
             //Send the even numbered packets (with sequence bit 1)
             case Send1:
-
                 //write sequence number
                 LORA_WriteBuffer(0x00, seq1, 0x01);
-                LORA_WriteBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
+                LORA_WriteBuffer(0x01, data, size);
                 //enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                 LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
                 while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
                 LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
                 nextState = WaitACK1;
-
             break;
 
             case WaitACK1:
-
                 LORA_SetRx(TIMEOUT_VALUE); //this gives a timeout duration of 1 second using formula timeout duration = timeout*15.625us
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
@@ -252,22 +237,15 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
                     //verify ACK
                     if (sequenceNumber[0] == (0x01)){
-
                         if (retransmitCount > maxRetransmit){
                             maxRetransmit = retransmitCount;
                         }
                         retransmitCount = 0;
 
-                        //update the information in bufData
-                        currentAddress = currentAddress + MAX_PAGE_SIZE;
-                        //if (count == totalPackets) Memory_ReadFromArray(currentAddress + 2, bufData, bytesInExtraPacket);
-                        //else Memory_ReadFromArray(currentAddress + 2, bufData, MAX_PAGE_SIZE - 2);
-
                         count++;     //increment count based on a successful, acknowledged transmission
                         nextState = Send0;
                         break;
                     }
-
                     else {
                         nextState = WaitACK1;
                         break;
@@ -276,20 +254,17 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
                 //if timeout, resend current frame then wait for ACK0
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
-
                     LORA_ClearIrqStatus(0x0262);
-
                     if (previousState == currentState){
                         retransmitCount++;
                         if (retransmitCount > maxRetransmit){
                             maxRetransmit = retransmitCount;
                         }
                     }
-
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
                         LORA_WriteBuffer(0x00, seq1, 0x01);
-                        LORA_WriteBuffer(0x01, bufData, MAX_BUFFER_SIZE-1);
+                        LORA_WriteBuffer(0x01, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
                         while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
@@ -297,20 +272,16 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                         nextState = WaitACK1;
                         break;
                     }
-
                     else return 1;
-
                 }
 
                 else{
                     nextState = WaitACK1;
                     break;
-                }
+            }
         }
-
         previousState = currentState;
         currentState = nextState;
-
     }
 
     LORA_SetStandby(STDBY_RC);
