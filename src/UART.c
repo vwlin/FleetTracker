@@ -86,9 +86,10 @@ uint32_t reads(uint8_t * buf, uint32_t maxSize){
             }
         character = (uint8_t) temp;
 
-        if(character == ESCAPE_CHARACTER) // check for the terminate character or sequence
+        if(character == LF) // check for line feed
             break;
-
+        if(character == CR) // check for carriage return
+            break;
         if(character == BACKSPACE_CHARACTER){
             numBytes--;
         }

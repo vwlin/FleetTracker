@@ -69,18 +69,37 @@ void main(void){
     */
 
     uint8_t i;
+    uint8_t readIn[MAX_PAYLOAD+1] = {0};
     uint8_t data[MAX_PAYLOAD] = {0};
+    uint8_t status;
 
     while(1){
+        //printf("\r\nentering while loop");
         #ifdef ROAMING_NODE
+            printf("\r\nEnter up to %d characters you want to send, then press enter:\r\n", MAX_PAYLOAD);
+            reads(readIn, MAX_PAYLOAD+1);
+            printf("\r\n");
+
+            for(i = 0; i < MAX_PAYLOAD; i++){
+                data[i] = readIn[i];
+            }
+
+            //printf("\r\nfilling data");
+            /*
             for(i = 0; i < MAX_PAYLOAD; i++){
                 data[i] = i;
             }
-            Roamer_EstablishConnection(data, MAX_PAYLOAD);
+            */
+
+            //printf("\r\nabout to call Roamer_EstablishConnection");
+            status = Roamer_EstablishConnection(data, MAX_PAYLOAD);
         #endif
 
         #ifdef HOME_NODE
-            Home_WaitForConnection();
+            //printf("\r\nabout to call Home_WaitForConnection");
+            status = Home_WaitForConnection();
         #endif
+
+        //printf("\r\n%d", status);
     }
 }

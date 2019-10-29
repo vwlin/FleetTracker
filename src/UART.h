@@ -12,7 +12,9 @@
  * uses UCA1
  */
 
-#define ESCAPE_CHARACTER            0x04                                  // End of Transmission (EOT)
+//#define ESCAPE_CHARACTER            0x04                                  // End of Transmission (EOT)
+#define LF                          0x0A                                    // escape character
+#define CR                          0x0D                                    // escape character
 #define BACKSPACE_CHARACTER         0x08
 #define MAX_PAGE_SIZE               256
 #define RX_BUF_SIZE                 16
@@ -32,9 +34,9 @@
 #define ENABLE_USCIA1               UCA1CTL1 &= ~UCSWRST                   // Clear UCSWRST bit
 #define DISABLE_USCIA1              UCA1CTL1 |= UCSWRST                    // Set UCSWRST bit
 
-#define UCBRx                       1666                                   // for 9600 with a clock speed of 16MHz
+#define UCBRx                       104                                    // for 9600 with a clock speed of 1 MHz
 #define UCBRFx                      0
-#define UCBRSx                      6
+#define UCBRSx                      1
 
 #define SET_UCA1_BR0                UCA1BR0 = UCBRx & 0x00FF
 #define SET_UCA1_BR1                UCA1BR1 = (UCBRx & 0xFF00) >> 8
