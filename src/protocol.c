@@ -96,13 +96,15 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
                     //printf("\r\ntimed out waiting for greeting");
                     if (retransmitCount < GIVEUP){
                         nextState = Ping;
-                        //retransmitCount++;
+                        retransmitCount++;
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
                     }
-                    else
+                    else{
+                        //printf("\r\ngiveup");
                         return 1;
+                    }
                 }
                 // Frame received with error
                 else{
@@ -176,7 +178,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
-                        //retransmitCount = 0;
+                        retransmitCount = 0;
 
                         //increment count based on a successful, acknowledged transmission
                         count++;
@@ -247,7 +249,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
-                        //retransmitCount = 0;
+                        retransmitCount = 0;
 
                         count++;     //increment count based on a successful, acknowledged transmission
                         nextState = Send0;
@@ -262,7 +264,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
                     LORA_ClearIrqStatus(0x0262);
                     if (previousState == currentState){
-                        //retransmitCount++;
+                        retransmitCount++;
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
@@ -332,6 +334,7 @@ uint8_t ReceiveData(){
                 printf("\r\nReceived:\r\n");
                 for(i = 0; i < MAX_PAYLOAD; i++){            // TO UPDATE    // TODO: make variable instead of MAX_PAYLOAD
                     printf("%c", data[i]);
+                    data[i] = 0;
                 }
                 printf("\r\n");
 

@@ -82,6 +82,7 @@ void main(void){
 
             for(i = 0; i < MAX_PAYLOAD; i++){
                 data[i] = readIn[i];
+                readIn[i] = 0;
             }
 
             //printf("\r\nfilling data");
@@ -101,5 +102,7 @@ void main(void){
         #endif
 
         //printf("\r\n%d", status);
+        if(status)
+            printf("\r\nData transfer Failed\r\n");
     }
 }
