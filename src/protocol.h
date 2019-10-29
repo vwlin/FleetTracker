@@ -64,7 +64,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
 #define GIVEUP_TIMEOUT              4 * TIMEOUT_VALUE
 #define GIVEUP_RECEIVE              6
 
-#define MAX_PAYLOAD                 14
+#define MAX_PAYLOAD                 50
 #define MAX_USERID                  255          // maximum user ID possible
 
 #define MAX_FILE_SIZE_BYTES         4            // maximum bytes needed to represent the size of the file
