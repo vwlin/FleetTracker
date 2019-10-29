@@ -19,3 +19,12 @@ B. Adding "driverlib" folder
 C. Creating new files
 1. Create file in local repo, but don't create it using CCS (i.e. use file explorer, terminal, etc)
 2. Link to file in CCS (see A. 3-4)
+
+TeraTerm download and Tips:
+Download latest version of TeraTerm [here](https://ttssh2.osdn.jp/index.html.en).
+To use TeraTerm with the firmware:
+1. Open Tera Term and select Serial. Select the appropriate USB Serial Port for the port. Click OK.
+2. If the device does not show up as a serial port, the proper drivers may not be installed and can be found [here](https://www.ftdichip.com/FTDrivers.htm).
+3. Go to Setup > Serial Port. In the dropdown menu for Speed, select the appropriate baudrate. Click OK.
+4. Go to Setup > Terminal and select Local echo. In the Coding-receive and Coding-transmit dropdown menus, select "UTF-8". Click OK.
+5. TeraTerm is ready to be used
