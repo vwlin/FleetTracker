@@ -58,9 +58,9 @@ unsigned char SPI_Busy_LORA(){
 }
 
 /*
- * EEPROM chip
+ * GPS chip
  */
-void Configure_SPI_EEPROM(){
+void Configure_SPI_GPS(){
     DISABLE_USCIB0;
 
     // UCB0 configuration
@@ -79,28 +79,28 @@ void Configure_SPI_EEPROM(){
     CONFIGURE_UCB0_BR1;
 
     // MOSI, MISO, SCLK
-    SET_EEPROM_MOSI_MODE;
-    SET_EEPROM_MISO_MODE;
-    SET_EEPROM_SCK_MODE;
-    SET_EEPROM_MOSI_AS_OUTPUT;
-    SET_EEPROM_MISO_AS_INPUT;
-    SET_EEPROM_SCK_AS_OUTPUT;
+    SET_GPS_MOSI_MODE;
+    SET_GPS_MISO_MODE;
+    SET_GPS_SCK_MODE;
+    SET_GPS_MOSI_AS_OUTPUT;
+    SET_GPS_MISO_AS_INPUT;
+    SET_GPS_SCK_AS_OUTPUT;
 
     ENABLE_USCIB0;
 }
 
-void SPI_SendByte_EEPROM(unsigned char sendValue){
-    while( SPI_Busy_EEPROM() ){}
+void SPI_SendByte_GPS(unsigned char sendValue){
+    while( SPI_Busy_GPS() ){}
 
     // Poll TX buffer and proceed only if it is empty
     while( !(UCTXIFG & UCB0IFG) ){}
     UCB0TXBUF = sendValue; // Flag automatically reset
 }
 
-unsigned char SPI_ReceiveByte_EEPROM(){
+unsigned char SPI_ReceiveByte_GPS(){
     unsigned char readValue;
 
-    while( SPI_Busy_EEPROM() ){}
+    while( SPI_Busy_GPS() ){}
 
     // Poll RX buffer and proceed only if it is full
     while(!(UCRXIFG & UCB0IFG)){}
@@ -109,6 +109,6 @@ unsigned char SPI_ReceiveByte_EEPROM(){
     return readValue;
 }
 
-unsigned char SPI_Busy_EEPROM(){
+unsigned char SPI_Busy_GPS(){
     return (UCB0STAT & BIT0);
 }

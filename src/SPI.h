@@ -57,17 +57,17 @@ unsigned char SPI_ReceiveByte_LORA();
 unsigned char SPI_Busy_LORA();
 
 /*
- * EEPROM SPI
+ * GPS SPI
  * UCB0
  */
-#define SET_EEPROM_MOSI_MODE            P3SEL |= BIT0
-#define SET_EEPROM_MISO_MODE            P3SEL |= BIT1
-#define SET_EEPROM_SCK_MODE             P3SEL |= BIT2
-#define SET_EEPROM_MOSI_AS_OUTPUT       P3DIR |= BIT0
-#define SET_EEPROM_MISO_AS_INPUT        P3DIR &= ~BIT1
-#define SET_EEPROM_SCK_AS_OUTPUT        P3DIR |= BIT2
-#define SET_EEPROM_MISO_PULLDOWN_1      P3OUT &= ~BIT1
-#define SET_EEPROM_MISO_PULLDOWN_2      P3REN |= BIT1
+#define SET_GPS_MOSI_MODE            P3SEL |= BIT0
+#define SET_GPS_MISO_MODE            P3SEL |= BIT1
+#define SET_GPS_SCK_MODE             P3SEL |= BIT2
+#define SET_GPS_MOSI_AS_OUTPUT       P3DIR |= BIT0
+#define SET_GPS_MISO_AS_INPUT        P3DIR &= ~BIT1
+#define SET_GPS_SCK_AS_OUTPUT        P3DIR |= BIT2
+#define SET_GPS_MISO_PULLDOWN_1      P3OUT &= ~BIT1
+#define SET_GPS_MISO_PULLDOWN_2      P3REN |= BIT1
 
 #define ENABLE_USCIB0                   UCB0CTL1 &= ~BIT0       // Clear UCSWRST bit
 #define DISABLE_USCIB0                  UCB0CTL1 |= BIT0        // Set UCSWRST bit
@@ -86,27 +86,27 @@ unsigned char SPI_Busy_LORA();
 #define CONFIGURE_UCB0_BR1              UCB0BR1 = 0x000         // Divide by 2
 
 /*
- * Configure_SPI_EEPROM
- * Configure the SPI module used for the EEPROM chip
+ * Configure_SPI_GPS
+ * Configure the SPI module used for the GPS chip
  */
-void Configure_SPI_EEPROM();
+void Configure_SPI_GPS();
 
 /*
- * SPI_SendByte_EEPROM
+ * SPI_SendByte_GPS
  * Sends one byte of data through the appropriate SPI line
  */
-void SPI_SendByte_EEPROM(unsigned char sendValue);
+void SPI_SendByte_GPS(unsigned char sendValue);
 
 /*
- * SPI_ReceiveByte_EEPROM
+ * SPI_ReceiveByte_GPS
  * Receives one byte of data from the appropriate SPI line
  */
-unsigned char SPI_ReceiveByte_EEPROM();
+unsigned char SPI_ReceiveByte_GPS();
 
 /*
- * SPI_Busy_EEPROM
+ * SPI_Busy_GPS
  * Checks the BUSY bit in the UCB0 status register
  */
-unsigned char SPI_Busy_EEPROM();
+unsigned char SPI_Busy_GPS();
 
 #endif /* SPI_H_ */
