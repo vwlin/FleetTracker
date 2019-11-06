@@ -1,2 +1,8 @@
 #include <msp430.h>
 #include <stdio.h>
+
+#define SAFEBOOT_PORT 6
+#define SAFEBOOT_PIN 4
+
+#define SET_SAFEBOOT_AS_OUTPUT GPIO_setAsOutputPin(SAFEBOOT_PORT, SAFEBOOT_PIN)
+#define DRIVE_SAFEBOOT_PIN_HIGH GPIO_setOutputHighOnPin(SAFEBOOT_PORT, SAFEBOOT_PIN)
