@@ -6,13 +6,12 @@
 
 #include "SPI.h"
 #include "LORA.h"
-#include "test.h"
 #include "FSM.h"
-#include "node.h"
 #include "UART.h"
 #include "help.h"
 #include "LED.h"
+#include "gps.h"
 
 void main(void){
-
+    configureGPS();
 }
