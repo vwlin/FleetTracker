@@ -10,7 +10,7 @@
 #include "UART.h"
 #include "help.h"
 #include "LED.h"
-#include "gps.h"
+//#include "gps.h"
 #include "clock.h"
 
 void main(void){

@@ -32,9 +32,9 @@
 #define ENABLE_USCIA1               UCA1CTL1 &= ~UCSWRST                   // Clear UCSWRST bit
 #define DISABLE_USCIA1              UCA1CTL1 |= UCSWRST                    // Set UCSWRST bit
 
-#define UCBRx                       1666                                   // for 9600 with a clock speed of 16MHz
+#define UCBRx                       104                                   // for 9600 with a clock speed of 1MHz (p 952 of MSP user guide)
 #define UCBRFx                      0
-#define UCBRSx                      6
+#define UCBRSx                      1
 
 #define SET_UCA1_BR0                UCA1BR0 = UCBRx & 0x00FF
 #define SET_UCA1_BR1                UCA1BR1 = (UCBRx & 0xFF00) >> 8
