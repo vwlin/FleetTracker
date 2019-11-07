@@ -26,8 +26,14 @@ void main(void){
 
     Configure_Clock();
     Configure_UART();
+    Configure_SPI_GPS();
+    configureGPS();
+
+    char buf[1];
 
     while(1){
-      printf("It's working\r\n");
+      buf[1] = SPI_ReceiveByte_GPS();
+      printf(buf);
+      printf("\r\n");
     }
 }
