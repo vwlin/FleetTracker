@@ -56,3 +56,59 @@ unsigned char SPI_ReceiveByte_LORA(){
 unsigned char SPI_Busy_LORA(){
     return (UCA0STAT & BIT0);
 }
+
+/*
+ * GPS chip
+ */
+void Configure_SPI_GPS(){
+    DISABLE_USCIB0;
+
+    // UCB0 configuration
+    SET_UCB0_MASTER_MODE;
+    SET_UCB0_PIN_MODE;
+    SET_UCB0_CHAR_LENGTH;
+    SET_UCB0_SYNC_MODE;
+    SET_UCB0_CLK_PHASE;
+    SET_UCB0_CLK_POLARITY;
+    SET_UCB0_ENDIAN;
+    SET_UCB0_LISTEN;
+
+    // UCB0 clock source
+    SET_UCB0_CLK_SRC;
+    CONFIGURE_UCB0_BR0;
+    CONFIGURE_UCB0_BR1;
+
+    // MOSI, MISO, SCLK
+    SET_GPS_MOSI_MODE;
+    SET_GPS_MISO_MODE;
+    SET_GPS_SCK_MODE;
+    SET_GPS_MOSI_AS_OUTPUT;
+    SET_GPS_MISO_AS_INPUT;
+    SET_GPS_SCK_AS_OUTPUT;
+
+    ENABLE_USCIB0;
+}
+
+void SPI_SendByte_GPS(unsigned char sendValue){
+    while( SPI_Busy_GPS() ){}
+
+    // Poll TX buffer and proceed only if it is empty
+    while( !(UCTXIFG & UCB0IFG) ){}
+    UCB0TXBUF = sendValue; // Flag automatically reset
+}
+
+unsigned char SPI_ReceiveByte_GPS(){
+    unsigned char readValue;
+
+    while( SPI_Busy_GPS() ){}
+
+    // Poll RX buffer and proceed only if it is full
+    while(!(UCRXIFG & UCB0IFG)){}
+    readValue = (unsigned char)UCB0RXBUF; // Flag automatically reset
+
+    return readValue;
+}
+
+unsigned char SPI_Busy_GPS(){
+    return (UCB0STAT & BIT0);
+}

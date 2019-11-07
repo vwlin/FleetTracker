@@ -56,4 +56,58 @@ unsigned char SPI_ReceiveByte_LORA();
  */
 unsigned char SPI_Busy_LORA();
 
+
+/*
+ * GPS SPI
+ * UCB0
+ */
+#define SET_GPS_MOSI_MODE            P3SEL |= BIT0
+#define SET_GPS_MISO_MODE            P3SEL |= BIT1
+#define SET_GPS_SCK_MODE             P3SEL |= BIT2
+#define SET_GPS_MOSI_AS_OUTPUT       P3DIR |= BIT0
+#define SET_GPS_MISO_AS_INPUT        P3DIR &= ~BIT1
+#define SET_GPS_SCK_AS_OUTPUT        P3DIR |= BIT2
+#define SET_GPS_MISO_PULLDOWN_1      P3OUT &= ~BIT1
+#define SET_GPS_MISO_PULLDOWN_2      P3REN |= BIT1
+
+#define ENABLE_USCIB0                   UCB0CTL1 &= ~BIT0       // Clear UCSWRST bit
+#define DISABLE_USCIB0                  UCB0CTL1 |= BIT0        // Set UCSWRST bit
+
+#define SET_UCB0_CLK_PHASE              UCB0CTL0 |= BIT7        // CPHA = 0 (capture on leading edge, change on trailing edge)
+#define SET_UCB0_CLK_POLARITY           UCB0CTL0 &= ~BIT6       // CPOL = 0 (inactive at 0)
+#define SET_UCB0_ENDIAN                 UCB0CTL0 |= BIT5        // MSB first
+#define SET_UCB0_MASTER_MODE            UCB0CTL0 |= UCMST       // Master mode
+#define SET_UCB0_PIN_MODE               UCB0CTL0 |= UCMODE_1    // 4-pin SPI, STE active high
+#define SET_UCB0_CHAR_LENGTH            UCB0CTL0 &= ~BIT4       // 8-bit data
+#define SET_UCB0_SYNC_MODE              UCB0CTL0 |= UCSYNC      // Synchronous
+#define SET_UCB0_LISTEN                 UCB0STAT &= ~BIT7       // Listen disabled
+
+#define SET_UCB0_CLK_SRC                UCB0CTL1 |= UCSSEL_2    // SMCLK source
+#define CONFIGURE_UCB0_BR0              UCB0BR0 = 0x000         // Divide by 2
+#define CONFIGURE_UCB0_BR1              UCB0BR1 = 0x000         // Divide by 2
+
+/*
+ * Configure_SPI_GPS
+ * Configure the SPI module used for the GPS chip
+ */
+void Configure_SPI_GPS();
+
+/*
+ * SPI_SendByte_GPS
+ * Sends one byte of data through the appropriate SPI line
+ */
+void SPI_SendByte_GPS(unsigned char sendValue);
+
+/*
+ * SPI_ReceiveByte_GPS
+ * Receives one byte of data from the appropriate SPI line
+ */
+unsigned char SPI_ReceiveByte_GPS();
+
+/*
+ * SPI_Busy_GPS
+ * Checks the BUSY bit in the UCB0 status register
+ */
+unsigned char SPI_Busy_GPS();
+
 #endif /* SPI_H_ */
