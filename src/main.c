@@ -73,7 +73,7 @@ void main(void){
     LORA_SetDIO2AsRfSwitchCtrl(DIO2_AS_SWITCH); // Set RF switch to pass through TX output
 
     //LORA_SetTxContinuousWave();
-    LORA_SetTxInfinitePreamble();
+    //LORA_SetTxInfinitePreamble();
 
 
     /*
