@@ -32,7 +32,7 @@ void main(void){
     char buf[1];
 
     while(1){
-      buf[1] = SPI_ReceiveByte_GPS();
+      buf[0] = SPI_ReceiveByte_GPS();
       printf(buf);
       printf("\r\n");
     }
