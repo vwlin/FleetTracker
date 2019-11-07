@@ -56,6 +56,7 @@ unsigned char SPI_ReceiveByte_LORA();
  */
 unsigned char SPI_Busy_LORA();
 
+
 /*
  * GPS SPI
  * UCB0
