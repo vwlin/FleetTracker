@@ -1,4 +1,4 @@
-#include <MSP430F5xx_6xx/gpio.h>
+#include <driverlib/MSP430F5xx_6xx/gpio.h>
 #include <msp430.h>
 #include "gps.h"
 
