@@ -6,13 +6,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "FSM.h"
+//#include "protocol.h"
 
 /*
  * uses UCA1
  */
 
-#define ESCAPE_CHARACTER            0x04                                  // End of Transmission (EOT)
+//#define ESCAPE_CHARACTER            0x04                                  // End of Transmission (EOT)
+#define LF                          0x0A                                    // escape character
+#define CR                          0x0D                                    // escape character
 #define BACKSPACE_CHARACTER         0x08
 #define MAX_PAGE_SIZE               256
 #define RX_BUF_SIZE                 16
@@ -32,9 +34,9 @@
 #define ENABLE_USCIA1               UCA1CTL1 &= ~UCSWRST                   // Clear UCSWRST bit
 #define DISABLE_USCIA1              UCA1CTL1 |= UCSWRST                    // Set UCSWRST bit
 
-#define UCBRx                       1666                                   // for 9600 with a clock speed of 16MHz
+#define UCBRx                       104                                    // for 9600 with a clock speed of 1 MHz
 #define UCBRFx                      0
-#define UCBRSx                      6
+#define UCBRSx                      1
 
 #define SET_UCA1_BR0                UCA1BR0 = UCBRx & 0x00FF
 #define SET_UCA1_BR1                UCA1BR1 = (UCBRx & 0xFF00) >> 8
@@ -97,27 +99,5 @@ int fputs(const char *_ptr, register FILE *_fp);
  * Returns the size of the string read in bytes
  */
 uint32_t reads(uint8_t * buf, uint32_t maxSize);
-
-/*
- * readm
- * Reads a file from the terminal into memory
- *
- * Parameters:
- *  maxSize - the maximum possible size of the file to be stored in memory
- *  startAddress - the first address in memory where the file will be stored
- *
- * Returns the size of the file read in bytes
- */
-uint32_t readm(uint32_t maxSize, uint32_t startAddress);
-
-/*
- * printFile
- * Print a file from memory to the terminal
- *
- * Parameters:
- *  size - size of the file to print
- *  startAddress - the first address in memory where the file is stored
- */
-void printFile(uint32_t size, uint32_t startAddress);
 
 #endif

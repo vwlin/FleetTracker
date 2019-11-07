@@ -86,9 +86,10 @@ uint32_t reads(uint8_t * buf, uint32_t maxSize){
             }
         character = (uint8_t) temp;
 
-        if(character == ESCAPE_CHARACTER) // check for the terminate character or sequence
+        if(character == LF) // check for line feed
             break;
-
+        if(character == CR) // check for carriage return
+            break;
         if(character == BACKSPACE_CHARACTER){
             numBytes--;
         }
@@ -102,72 +103,6 @@ uint32_t reads(uint8_t * buf, uint32_t maxSize){
 
     return numBytes;
 }
-
-uint32_t readm(uint32_t maxSize, uint32_t startAddress){
-    uint32_t numBytes = 0;
-    uint32_t j = 2;
-    uint8_t character;
-    int16_t temp;
-    uint32_t currentAddress = startAddress;
-    uint8_t toStore[MAX_PAGE_SIZE] = {0x064};
-
-    ENABLE_RX_IR;
-
-    while(numBytes < maxSize){
-        while(j < MAX_PAGE_SIZE){
-            temp = UART_ReceiveByte();
-            while(temp == -1){
-                temp = UART_ReceiveByte();
-            }
-            character = (uint8_t) temp;
-
-            if(character == ESCAPE_CHARACTER)
-                break;
-
-            toStore[j] = character;
-            j++;
-            numBytes++;
-        }
-        Memory_WriteToArray(currentAddress, toStore, j);
-
-        if(character == ESCAPE_CHARACTER)
-            break;
-
-        currentAddress = currentAddress + MAX_PAGE_SIZE;
-        j = 2;
-    }
-
-    DISABLE_RX_IR;
-
-    return numBytes;
-}
-
-void printFile(uint32_t size, uint32_t startAddress){
-    uint32_t i = 0;
-    uint32_t j;
-    uint32_t count = 0;
-    uint32_t pages;
-    uint8_t toPrint[MAX_PAGE_SIZE-2] = {0};
-    uint32_t currentAddress = startAddress;
-
-    //get number of pages, maxSize is in bytes
-    uint16_t numWholePages = (size)/(MAX_PAGE_SIZE-2);
-    uint8_t extraPage = (size % (MAX_PAGE_SIZE-2)) > 0;
-    pages = numWholePages + extraPage;
-
-    while (i < pages){
-
-        Memory_ReadFromArray(currentAddress + 2, toPrint, MAX_PAGE_SIZE - 2);
-
-        for (j = 0; j < MAX_PAGE_SIZE - 2; j++){
-            count++;
-            if (count <= size) UART_SendByte(toPrint[j]);
-        }
-        currentAddress = currentAddress + MAX_PAGE_SIZE;
-        i++;
-    }
-}
-
 
 // Receive and transmit vector, address at 0x0FFDC (see datasheet, pg 53)
 #pragma vector = USCI_A1_VECTOR
