@@ -3,6 +3,7 @@
 
 #include "LORA.h"
 #include "flash.h"
+#include "protocol.h"
 
 /*
  * testLORA
@@ -22,13 +23,13 @@ uint8_t testFlash();
 
 /*
  * testTransmitOneFrame
- * Sends 255 bytes of data: {1, 2, 3, 4, ..., 255}
+ * Sends MAX_PAYLOAD bytes of data: {1, 2, 3, 4, ..., MAX_PAYLOAD}
  */
 void testTransmitOneFrame();
 
 /*
  * testReceiveOneFrame
- * Receives 255 bytes of data: {1, 2, 3, 4, ..., 255}
+ * Receives MAX_PAYLOAD bytes of data: {1, 2, 3, 4, ..., MAX_PAYLOAD}
  *
  * Returns 1 if received the correct data; else 0
  */

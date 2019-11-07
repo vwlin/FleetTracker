@@ -22,7 +22,7 @@
 
 //#define ROAMING_NODE
 //#define HOME_NODE
-//#define TEST
+#define TEST
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -44,7 +44,7 @@ void main(void){
 
     #ifdef TEST
         volatile uint8_t passLORA = testLORA();
-        //volatile uint8_t passRF = testReceiveOneFrame();
+        volatile uint8_t passRF = testReceiveOneFrame();
         //testTransmitOneFrame();
 
         while(1);
