@@ -22,7 +22,7 @@
 
 //#define ROAMING_NODE
 //#define HOME_NODE
-#define TEST
+//#define TEST
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -44,7 +44,7 @@ void main(void){
 
     #ifdef TEST
         volatile uint8_t passLORA = testLORA();
-        volatile uint8_t passRF = testReceiveOneFrame();
+        //volatile uint8_t passRF = testReceiveOneFrame();
         //testTransmitOneFrame();
 
         while(1);
@@ -72,6 +72,9 @@ void main(void){
     SET_ANT_SW; // Set RF switch to pass through TX output
     LORA_SetDIO2AsRfSwitchCtrl(DIO2_AS_SWITCH); // Set RF switch to pass through TX output
 
+    //LORA_SetTxContinuousWave();
+    LORA_SetTxInfinitePreamble();
+
 
     /*
     while(1){
@@ -83,7 +86,7 @@ void main(void){
     uint8_t i;
     uint8_t readIn[MAX_PAYLOAD+1] = {0};
     uint8_t data[MAX_PAYLOAD] = {0};
-    uint8_t status;
+    uint8_t status = 0;
 
     while(1){
         //printf("\r\nentering while loop");
