@@ -13,5 +13,9 @@
 #include "gps.h"
 
 void main(void){
-    configureGPS();
+    //Configure_SPI_GPS();
+    //configureGPS();
+    while(1){
+        printf("Hello World/n");
+    }
 }

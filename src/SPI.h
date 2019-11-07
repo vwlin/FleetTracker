@@ -81,8 +81,8 @@ unsigned char SPI_Busy_LORA();
 #define SET_UCB0_SYNC_MODE              UCB0CTL0 |= UCSYNC      // Synchronous
 #define SET_UCB0_LISTEN                 UCB0STAT &= ~BIT7       // Listen disabled
 
-#define SET_UCB0_CLK_SRC                UCB0CTL1 |= UCSSEL_2    // SMCLK source (16 MHz)
-#define CONFIGURE_UCB0_BR0              UCB0BR0 = 0x002         // Divide by 2
+#define SET_UCB0_CLK_SRC                UCB0CTL1 |= UCSSEL_2    // SMCLK source
+#define CONFIGURE_UCB0_BR0              UCB0BR0 = 0x000         // Divide by 2
 #define CONFIGURE_UCB0_BR1              UCB0BR1 = 0x000         // Divide by 2
 
 /*
