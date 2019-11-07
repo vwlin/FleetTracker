@@ -28,7 +28,7 @@
 #define SET_UCA0_SYNC_MODE              UCA0CTL0 |= UCSYNC      // Synchronous
 #define SET_UCA0_LISTEN                 UCA0STAT &= ~BIT7       // Listen disabled
 
-#define SET_UCA0_CLK_SRC                UCA0CTL1 |= UCSSEL_2    // SMCLK source (16 MHz)
+#define SET_UCA0_CLK_SRC                UCA0CTL1 |= UCSSEL_2    // SMCLK source (1 MHz)
 #define CONFIGURE_UCA0_BR0              UCA0BR0 = 0x000         // Divide by 1
 #define CONFIGURE_UCA0_BR1              UCA0BR1 = 0x000         // Divide by 1
 

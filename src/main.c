@@ -27,13 +27,25 @@ void main(void){
     Configure_Clock();
     Configure_UART();
     Configure_SPI_GPS();
+    Configure_SPI_LORA(); //debug
     configureGPS();
 
     char buf[1];
 
+
     while(1){
-      buf[0] = SPI_ReceiveByte_GPS();
-      printf(buf);
-      printf("\r\n");
+        int i = 0;
+        SELECT_GPS_CS;
+        SPI_SendByte_LORA(0xDE);
+        SPI_SendByte_GPS(0xAD);
+        for(i = 0; i < 1000; i++){}
+        /*
+        buf[0] = SPI_ReceiveByte_GPS();
+        printf(buf);
+        printf("\r\n");
+        */
+
+        DESELECT_GPS_CS;
+        for(i = 0; i < 1000; i++){}
     }
 }
