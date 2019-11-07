@@ -5,13 +5,10 @@
 #include <stdint.h>
 
 #include "SPI.h"
-#include "LORA.h"
-#include "test.h"
-#include "protocol.h"
 #include "UART.h"
-#include "help.h"
 #include "LED.h"
 #include "clock.h"
+#include "gps.h"
 
 /* CHOOSE ONE
  *
