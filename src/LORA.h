@@ -7,6 +7,11 @@
 #include "SPI.h"
 
 /*
+ * USER CONFIGURATIONS
+ */
+#define HEADER_MODE     LORA_HT_IMPLICIT    // LORA_HT_EXPLICIT, LORA_HT_IMPLICIT
+
+/*
  * Constants
  * https://github.com/Lora-net/LoRaMac-node/blob/develop/src/radio/sx126x/sx126x.h
  */
@@ -785,5 +790,14 @@ uint16_t LORA_TransmitAndWait(uint8_t offset, uint8_t * data, uint8_t size, uint
  * Returns IRQ status register contents
  */
 uint16_t LORA_WaitForReceive(uint8_t offset, uint8_t * data, uint8_t size, uint32_t timeout, uint16_t IRQMask);
+
+/*
+ * LORA_ResetTimeoutCounter
+ * Stops the timeout counter and clears the potential timeout event; Call after every RX with timeout active sequence
+ *
+ * Suggested solution to known implicit header mode timeout behavior bug
+ * See SX1262 datasheet page 103 for further explanation
+ */
+void LORA_ResetTimeoutCounter();
 
 #endif /* LORA_H_ */
