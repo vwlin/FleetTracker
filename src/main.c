@@ -98,6 +98,10 @@ void main(void){
             // TODO: swap out following lines for code that fills data (length DATA_PAYLOAD_LENGTH)
             // with device ID, ADC readings, and GPS data
 
+            for(i = 0; i < PAYLOAD_LENGTH; i++){
+                data[i] = 0;
+            }
+
             printf("\r\nEnter up to %d characters you want to send, then press enter:\r\n", PAYLOAD_LENGTH-2);
             reads(data, PAYLOAD_LENGTH, 2);
             printf("\r\n");
@@ -105,12 +109,6 @@ void main(void){
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1F00) >> 8);
             data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
-
-            //for(i = 0; i < (PAYLOAD_LENGTH); i++){
-            //    if(i >= 2)
-            //        data[i] = readIn[i-2];
-            //    readIn[i] = 0;
-            //}
 
             //printf("\r\nabout to call Roamer_EstablishConnection");
             status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH);
