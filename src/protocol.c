@@ -72,7 +72,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
 
             // Ping host with password
             case Ping:
-                printf("\r\npinging");
+                //printf("\r\npinging");
                 sendCode[0] = PASSWORD;
                 LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
 

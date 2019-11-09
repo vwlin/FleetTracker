@@ -7,11 +7,6 @@
 #include "SPI.h"
 
 /*
- * USER CONFIGURATIONS
- */
-#define HEADER_MODE     LORA_HT_IMPLICIT    // LORA_HT_EXPLICIT, LORA_HT_IMPLICIT
-
-/*
  * Constants
  * https://github.com/Lora-net/LoRaMac-node/blob/develop/src/radio/sx126x/sx126x.h
  */
