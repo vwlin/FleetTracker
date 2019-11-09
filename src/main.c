@@ -33,6 +33,9 @@ void main(void){
     Configure_SPI_LORA();
     Configure_LORA();
 
+    // Reset LoRa chip
+    LORA_Reset();
+
     #ifndef TEST
     // Check for errors in the LoRa chip
     uint16_t errors = LORA_GetDeviceErrors();
@@ -42,9 +45,6 @@ void main(void){
     }
     #endif
 
-    // Reset LoRa chip
-    LORA_Reset();
-
     // Configure communications
     LORA_SetStandby(STDBY_RC);
     LORA_SetPacketType(PACKET_TYPE_LORA);
@@ -52,7 +52,7 @@ void main(void){
     LORA_SetPaConfig(0x04, 0x07, PA_CONFIG_1262);
     LORA_SetTxParams(22, SET_RAMP_200U);
     LORA_SetModulationParams(0, 0, 0, LORA_SF12, LORA_CR_4_5, LORA_OPT_OFF, LORA_BW_500);
-    LORA_SetPacketParams(0, 0, 0, 0, 0, LORA_HT_EXPLICIT, LORA_IQ_STANDARD, 12, MAX_PAYLOAD+1, LORA_CRC_ON); //TOFIX: MAX_PAYLOAD+1?? not sure why +1
+    LORA_SetPacketParams(0, 0, 0, 0, 0, LORA_HT_IMPLICIT, LORA_IQ_STANDARD, 12, MAX_PAYLOAD+1, LORA_CRC_ON); //TOFIX: MAX_PAYLOAD+1?? not sure why +1
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
 
     // Set LoRa Sync word MSB and LSB ?? needed? TODO: check if needed

@@ -1156,9 +1156,16 @@ uint16_t LORA_TransmitAndWait(uint8_t offset, uint8_t * data, uint8_t size, uint
 
 uint16_t LORA_WaitForReceive(uint8_t offset, uint8_t * data, uint8_t size, uint32_t timeout, uint16_t IRQMask){
     uint16_t irqContents;
+    uint8_t regData[1] = {0x00};
 
     LORA_SetDioIrqParams(IRQMask, 0x0000, 0x0000, 0x0000);
     LORA_SetRx(timeout);
+    if(timeout > 0){ // implicit header timeout bug workaround, given in SX1262 DS pg 103
+        LORA_WriteRegister(0x0920, regData, 1);
+        LORA_ReadRegister(0x0944, regData, 1);
+        regData[0] |= 0x02;
+        LORA_WriteRegister(0x0944, regData, 1);
+    }
 
     irqContents = LORA_GetIrqStatus();
     while(!irqContents){

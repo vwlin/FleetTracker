@@ -140,6 +140,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
     uint8_t * seq0 = &seq0Val;
     uint8_t * seq1 = &seq1Val;
 
+    uint8_t regData[1] = {0x00};
+
     // Transmit all packets
     while(count <= totalPackets){
         switch (currentState){
@@ -161,6 +163,11 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
             case WaitACK0:
                 printf("\r\nin WaitACK0");
                 LORA_SetRx(TIMEOUT_VALUE);
+                // implement implicit header mode timeout bug workaround
+                LORA_WriteRegister(0x0920, regData, 1);
+                LORA_ReadRegister(0x0944, regData, 1);
+                regData[0] |= 0x02;
+                LORA_WriteRegister(0x0944, regData, 1);
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
                 //poll status register until something changes
@@ -234,6 +241,11 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
             case WaitACK1:
                 printf("\r\nin WaitACK1");
                 LORA_SetRx(TIMEOUT_VALUE); //this gives a timeout duration of 1 second using formula timeout duration = timeout*15.625us
+                // implement implicit header mode timeout bug workaround
+                LORA_WriteRegister(0x0920, regData, 1);
+                LORA_ReadRegister(0x0944, regData, 1);
+                regData[0] |= 0x02;
+                LORA_WriteRegister(0x0944, regData, 1);
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
                 //poll status register until something changes
@@ -307,10 +319,17 @@ uint8_t ReceiveData(){
     uint8_t data[MAX_PAYLOAD] = {0}; // received data to be stored here      // TODO: make variable instead of MAX_PAYLOAD
     uint8_t sequenceNumber[1] = {0}; // for sequence number
 
+    uint8_t regData[1] = {0x00};
+
     while (count <= totalPackets){
         // enable rxdone, header CRC, payload CRC, timeout IRQs
         LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
         LORA_SetRx(GIVEUP_TIMEOUT);
+        // implement implicit header mode timeout bug workaround
+        LORA_WriteRegister(0x0920, regData, 1);
+        LORA_ReadRegister(0x0944, regData, 1);
+        regData[0] |= 0x02;
+        LORA_WriteRegister(0x0944, regData, 1);
 
         //wait for rxDone or timeout
         while( !(LORA_GetIrqStatus()) );
