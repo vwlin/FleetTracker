@@ -33,22 +33,14 @@ void main(void){
     Configure_SPI_LORA();
     Configure_LORA();
 
-    #ifndef TEST
+    //#ifndef TEST
     // Check for errors in the LoRa chip
     uint16_t errors = LORA_GetDeviceErrors();
     if(errors != 0){
         printf("\r\nErrors found. Restart the device.");
         while(1);
     }
-    #endif
-
-    #ifdef TEST
-        volatile uint8_t passLORA = testLORA();
-        volatile uint8_t passRF = testReceiveOneFrame();
-        //testTransmitOneFrame();
-
-        while(1);
-    #endif
+    //#endif
 
     // Reset LoRa chip
     LORA_Reset();
@@ -74,6 +66,16 @@ void main(void){
 
     //LORA_SetTxContinuousWave();
     //LORA_SetTxInfinitePreamble();
+
+    #ifdef TEST
+    volatile uint8_t passLORA = testLORA();
+    //volatile uint8_t passRF = testReceiveOneFrame();
+    //testTransmitOneFrame();
+
+    while(1){
+        testTransmitOneFrame();
+    }
+    #endif
 
 
     /*
