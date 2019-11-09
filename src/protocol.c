@@ -21,7 +21,7 @@ uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info th
 
             // Wait for client to send "Hello" ping
             case Listen:
-                //printf("\r\nlistening for a hello");
+                printf("\r\nlistening for a hello");
                 irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
 
                 // Ping received with no errors, and password is correct
@@ -36,7 +36,7 @@ uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info th
 
             // Send "Hello" response to client
             case Greet:
-                //printf("\r\nresponding to client");
+                printf("\r\nresponding to client");
                 sendCode[0] = PASSWORD;
                 LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
 
@@ -45,7 +45,7 @@ uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info th
 
             // Receive data
             case Receive:
-                //printf("\r\nabout to start receiving data");
+                printf("\r\nabout to start receiving data");
                 return ReceiveData();
                 // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
                 // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
@@ -72,7 +72,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
 
             // Ping host with password
             case Ping:
-                //printf("\r\npinging");
+                printf("\r\npinging");
                 sendCode[0] = PASSWORD;
                 LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
 
@@ -81,7 +81,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
 
             // Wait for client to respond with "Hello" greeting
             case WaitForGreeting:
-                //printf("\r\nwaiting for greeting");
+                printf("\r\nwaiting for greeting");
                 irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
 
                 // Greeting received with no errors and before timeout
@@ -93,7 +93,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
                 }
                 // Timeout occurred
                 else if (irqStatus == IRQ_TIMEOUT){
-                    //printf("\r\ntimed out waiting for greeting");
+                    printf("\r\ntimed out waiting for greeting");
                     if (retransmitCount < GIVEUP){
                         nextState = Ping;
                         retransmitCount++;
@@ -102,7 +102,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
                         //}
                     }
                     else{
-                        //printf("\r\ngiveup");
+                        printf("\r\ngiveup");
                         return 1;
                     }
                 }
@@ -114,7 +114,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
 
             // transmit data
             case Transmit:
-                //printf("\r\nabout to transmit data");
+                printf("\r\nabout to transmit data");
                 return TransmitData(data, size);
                 // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
                 // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
@@ -145,7 +145,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
         switch (currentState){
             //Send the odd numbered packets (with sequence bit 0)
             case Send0:
-                //printf("\r\nin Send0");
+                printf("\r\nin Send0");
                 //add file to array bufData
                 LORA_WriteBuffer(0x00, seq0, 0x01);
                 LORA_WriteBuffer(0x01, data, size);
@@ -159,7 +159,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
             //data has been transmitted, need to wait for receiver to send acknowledgment
             case WaitACK0:
-                //printf("\r\nin WaitACK0");
+                printf("\r\nin WaitACK0");
                 LORA_SetRx(TIMEOUT_VALUE);
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
@@ -219,7 +219,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 
             //Send the even numbered packets (with sequence bit 1)
             case Send1:
-                //printf("\r\nin Send1");
+                printf("\r\nin Send1");
                 //write sequence number
                 LORA_WriteBuffer(0x00, seq1, 0x01);
                 LORA_WriteBuffer(0x01, data, size);
@@ -232,7 +232,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
             break;
 
             case WaitACK1:
-                //printf("\r\nin WaitACK1");
+                printf("\r\nin WaitACK1");
                 LORA_SetRx(TIMEOUT_VALUE); //this gives a timeout duration of 1 second using formula timeout duration = timeout*15.625us
                 //enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
@@ -317,7 +317,7 @@ uint8_t ReceiveData(){
 
         //if received before timeout with no errors
         if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
-            //printf("\r\nreceived, no timeout, no errors");
+            printf("\r\nreceived, no timeout, no errors");
             LORA_ClearIrqStatus(0x0262);
 
             //get sequence number and check if it is the expected value
@@ -325,7 +325,7 @@ uint8_t ReceiveData(){
 
             // If not a repeat, put the packet in the file
             if (sequenceNumber[0] == !(previousSeqNum)){
-                //printf("\r\nnot a repeat");
+                printf("\r\nnot a repeat");
                 //read the buffer (don't read sequence number)
                 LORA_ReadBuffer(0x01, data, MAX_PAYLOAD);                // TODO: make variable instead of MAX_PAYLOAD
                 previousSeqNum = sequenceNumber[0];

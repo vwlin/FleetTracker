@@ -21,8 +21,8 @@
  */
 
 //#define ROAMING_NODE
-//#define HOME_NODE
-#define TEST
+#define HOME_NODE
+//#define TEST
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -33,14 +33,14 @@ void main(void){
     Configure_SPI_LORA();
     Configure_LORA();
 
-    //#ifndef TEST
+    #ifndef TEST
     // Check for errors in the LoRa chip
     uint16_t errors = LORA_GetDeviceErrors();
     if(errors != 0){
         printf("\r\nErrors found. Restart the device.");
         while(1);
     }
-    //#endif
+    #endif
 
     // Reset LoRa chip
     LORA_Reset();
@@ -51,7 +51,7 @@ void main(void){
     LORA_SetRfFrequency(915000000);
     LORA_SetPaConfig(0x04, 0x07, PA_CONFIG_1262);
     LORA_SetTxParams(22, SET_RAMP_200U);
-    LORA_SetModulationParams(0, 0, 0, LORA_SF6, LORA_CR_4_5, LORA_OPT_OFF, LORA_BW_500);
+    LORA_SetModulationParams(0, 0, 0, LORA_SF12, LORA_CR_4_5, LORA_OPT_OFF, LORA_BW_500);
     LORA_SetPacketParams(0, 0, 0, 0, 0, LORA_HT_EXPLICIT, LORA_IQ_STANDARD, 12, MAX_PAYLOAD+1, LORA_CRC_ON); //TOFIX: MAX_PAYLOAD+1?? not sure why +1
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
 
@@ -70,20 +70,11 @@ void main(void){
     #ifdef TEST
     volatile uint8_t passLORA = testLORA();
     //volatile uint8_t passRF = testReceiveOneFrame();
-    //testTransmitOneFrame();
 
     while(1){
         testTransmitOneFrame();
     }
     #endif
-
-
-    /*
-    while(1){
-        TOGGLE_LED;
-        _delay_cycles(1000000); // 1 second
-    }
-    */
 
     uint8_t i;
     uint8_t readIn[MAX_PAYLOAD+1] = {0};
