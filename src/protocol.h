@@ -29,14 +29,15 @@
  * Handshake from home node perspective: wait for a roamer to establish a connection
  *
  * Parameters:
- *  userID - length 1 buffer that will hold the ID of the roaming node sending the data
+ *  data - pointer to array of 8 bit data to be received
+ *  size - size of data to receive in bytes
  *
  * Returns code:
  * 1 if failed
  * else 0
  */
 
-uint8_t Home_WaitForConnection();//uint8_t * userID); TODO <-
+uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size);
 
 
 /*
@@ -44,8 +45,8 @@ uint8_t Home_WaitForConnection();//uint8_t * userID); TODO <-
  * Handshake from roaming node perspective: ping home node to establish a connection
  *
  * Parameters:
- * data - pointer to array of 8 bit data
- * size - size of data to transmit in bytes
+ *  data - pointer to array of 8 bit data to be transmitted
+ *  size - size of data to transmit in bytes
  *
  * Returns code:
  * 1 if failed
@@ -65,9 +66,6 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
 #define GIVEUP_TIMEOUT              4 * TIMEOUT_VALUE
 #define GIVEUP_RECEIVE              6
 
-#define TOTAL_PAYLOAD               DATA_PAYLOAD_LENGTH+1   // TOTAL_PAYLOAD = DATA_PAYLOAD_LENGTH + SEQUENCE_NUMBER_LENGTH
-#define MAX_USERID                  255                     // maximum user ID possible
-
 #define MAX_FILE_SIZE_BYTES         4                       // maximum bytes needed to represent the size of the file
 #define MAX_USERID_BYTES            1                       // maximum bytes needed to represent the user ID
 #define MAX_NUMFILES_SIZE_BYTES     1                       // maximum bytes needed to represent the number of files Host->Client
@@ -79,8 +77,8 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
  * Sends data and waits for ACK after each frame sent, retransmits if errors occurred the first time or if ACK is lost
  *
  * Parameters:
- * data - pointer to array of 8 bit data
- * size - size of data to transmit in bytes
+ *  data - pointer to array of 8 bit data to be transmitted
+ *  size - size of data to transmit in bytes
  *
  * Return code: 1 if there was an error, 0 if transmitted successfully
  */
@@ -91,8 +89,12 @@ uint8_t TransmitData(uint8_t * data, uint8_t size);
  * Receives data, sends ACK for each frame received, keeps track of sequence of frames to account for retransmissions
  * Prints data to terminal
  *
+ * Parameters:
+ *  data - pointer to array of 8 bit data to be received
+ *  size - size of data to receive in bytes
+ *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-uint8_t ReceiveData();
+uint8_t ReceiveData(uint8_t * data, uint8_t size);
 
 #endif /* NODE_H_ */

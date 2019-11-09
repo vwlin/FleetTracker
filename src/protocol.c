@@ -8,7 +8,7 @@ typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 //extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info that is received
+uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
     uint16_t irqStatus;
@@ -46,7 +46,7 @@ uint8_t Home_WaitForConnection(){ // TODO: add a place to access user id info th
             // Receive data
             case Receive:
                 //printf("\r\nabout to start receiving data");
-                return ReceiveData();
+                return ReceiveData(data, size);
                 // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
                 // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
@@ -135,10 +135,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
     int retransmitCount = 0;
 
     // Prepare sequence values for writing into LoRa buffer
-    uint8_t seq0Val = 0;
-    uint8_t seq1Val = 1;
-    uint8_t * seq0 = &seq0Val;
-    uint8_t * seq1 = &seq1Val;
+    uint8_t seq0 = 0;
+    uint8_t seq1 = 1;
+    //uint8_t * seq0 = &seq0Val;
+    //uint8_t * seq1 = &seq1Val;
 
     // Transmit all packets
     while(count <= totalPackets){
@@ -146,9 +146,9 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
             //Send the odd numbered packets (with sequence bit 0)
             case Send0:
                 //printf("\r\nin Send0");
-                //add file to array bufData
-                LORA_WriteBuffer(0x00, seq0, 0x01);
-                LORA_WriteBuffer(0x01, data, size);
+
+                data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
+                LORA_WriteBuffer(0x00, data, size); // write whole packet to buffer
                 //enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                 LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
@@ -173,11 +173,11 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 //if acknowledgment is received before timeout and no errors are found, move on and send 1
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
-                    uint8_t sequenceNumber[1] = {0};
-                    LORA_ReadBuffer(0x00, sequenceNumber, 1); //read ACK
+                    uint8_t received[1] = {0};
+                    LORA_ReadBuffer(0x00, received, 1); //read ACK
 
                     //verify ACK
-                    if (sequenceNumber[0] == (0x00)){
+                    if ( (received[0] & 0x80 ) == (0x00) ){
 
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
@@ -206,8 +206,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
-                        LORA_WriteBuffer(0x00, seq0, 0x01);
-                        LORA_WriteBuffer(0x01, data, size);
+                        data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
+                        LORA_WriteBuffer(0x00, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
                         while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
@@ -225,8 +225,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
             case Send1:
                 //printf("\r\nin Send1");
                 //write sequence number
-                LORA_WriteBuffer(0x00, seq1, 0x01);
-                LORA_WriteBuffer(0x01, data, size);
+                data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
+                LORA_WriteBuffer(0x00, data, size);
                 //enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                 LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
@@ -250,10 +250,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                 //if acknowledgment is received before timeout and no errors are found, move on and send 0
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
-                    uint8_t sequenceNumber[1] = {0};
-                    LORA_ReadBuffer(0x00, sequenceNumber, 1); //read ACK
+                    uint8_t received[1] = {0};
+                    LORA_ReadBuffer(0x00, received, 1); //read ACK
                     //verify ACK
-                    if (sequenceNumber[0] == (0x01)){
+                    if ( (received[0] & 0x80 ) == (0x80) ){
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
@@ -279,8 +279,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
                         //determine current frame based on count and re-send it
-                        LORA_WriteBuffer(0x00, seq1, 0x01);
-                        LORA_WriteBuffer(0x01, data, size);
+                        data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
+                        LORA_WriteBuffer(0x00, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
                         while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
@@ -303,19 +303,19 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
     return 0;
 }
 
-
-uint8_t ReceiveData(){
+// for vivian:
+// TODO: move seq number handling to main or a function external to this one
+// in each duty cycle, only sending one distinct packet at a time
+// so sequence numbers need to track duty cycles effectively
+uint8_t ReceiveData(uint8_t * data, uint8_t size){
     uint8_t i;
     int totalPackets = 1; //delete later
 
     int count = 1;
     int numErrors = 0;
-    uint8_t previousSeqNum = 0x01; // assuming first sequence number is always 0
+    uint8_t previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is always 0)
 
-    uint8_t data[DATA_PAYLOAD_LENGTH] = {0}; // received data to be stored here      // TODO: make variable instead of MAX_PAYLOAD
-    uint8_t sequenceNumber[1] = {0}; // for sequence number
-
-    uint8_t regData[1] = {0x00};
+    uint8_t byteOne[1] = {0}; // for sequence number
 
     while (count <= totalPackets){
         // enable rxdone, header CRC, payload CRC, timeout IRQs
@@ -335,22 +335,15 @@ uint8_t ReceiveData(){
             LORA_ClearIrqStatus(0x0262);
 
             //get sequence number and check if it is the expected value
-            LORA_ReadBuffer(0x00, sequenceNumber, 1);
+            LORA_ReadBuffer(0x00, byteOne, 1);
+            byteOne[0] &= 0x80; // parse out sequence number
 
             // If not a repeat, put the packet in the file
-            if (sequenceNumber[0] == !(previousSeqNum)){
+            if ( byteOne[0] == !(previousSeqNum)){
                 //printf("\r\nnot a repeat");
-                //read the buffer (don't read sequence number)
-                LORA_ReadBuffer(0x01, data, DATA_PAYLOAD_LENGTH);                // TODO: make variable instead of MAX_PAYLOAD
-                previousSeqNum = sequenceNumber[0];
-
-                // print data to terminal LATER send to a pc
-                printf("\r\nReceived:\r\n");
-                for(i = 0; i < DATA_PAYLOAD_LENGTH; i++){            // TO UPDATE    // TODO: make variable instead of MAX_PAYLOAD
-                    printf("%c", data[i]);
-                    data[i] = 0;
-                }
-                printf("\r\n");
+                //read the buffer
+                LORA_ReadBuffer(0x00, data, size);
+                previousSeqNum = byteOne[0]; // parse out sequence number
 
                 count++;
             }
@@ -360,7 +353,7 @@ uint8_t ReceiveData(){
             }
 
             //send ACK whether repeat or not
-            LORA_WriteBuffer(0x00, sequenceNumber , 0x01);
+            LORA_WriteBuffer(0x00, byteOne , 0x01);
             LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
             LORA_SetTx(0x000000);
             while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone

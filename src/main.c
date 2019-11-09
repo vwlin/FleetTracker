@@ -53,7 +53,7 @@ void main(void){
     LORA_SetPaConfig(0x04, 0x07, PA_CONFIG_1262);
     LORA_SetTxParams(22, SET_RAMP_200U);
     LORA_SetModulationParams(0, 0, 0, SPREADING_FACTOR, CODING_RATE, LDR_OPT_ENABLE, BANDWIDTH); // configurable in configure.h
-    LORA_SetPacketParams(0, 0, 0, 0, 0, HEADER_MODE, IQ_MODE, PREAMBLE_LENGTH, TOTAL_PAYLOAD, CRC_ENABLE); // configurable in configure.h // todo figure out why TOTAL_PAYLOAD+1, +1 necessary?
+    LORA_SetPacketParams(0, 0, 0, 0, 0, HEADER_MODE, IQ_MODE, PREAMBLE_LENGTH, PAYLOAD_LENGTH, CRC_ENABLE); // configurable in configure.h // todo figure out why TOTAL_PAYLOAD+1, +1 necessary?
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
 
     // Set LoRa Sync word MSB and LSB ?? needed? TODO: check if needed
@@ -74,30 +74,65 @@ void main(void){
     }
     #endif
 
+
+    // @ note for vivian, please don't delete
+    // end goal:
+        // sequence number 1 bit
+        // device ID 13 bites
+        // ADC readings 24 bits
+        // gps DATA 74 bits
+        // unused 8 bits
+    // currently:
+        // sequence number 1 bit   // TODO: make 1 bit - will need to reconstruct inside of protocol.c functions then index to 0 buffer instead of just indexing to 0 (for seq no) then 1 (for data)
+        // unused 2 bits
+        // device ID 13 bits
+        // character data  13 bytes (needs to be full bytes bc characters)
     uint8_t i;
-    uint8_t readIn[DATA_PAYLOAD_LENGTH+1] = {0};
-    uint8_t data[DATA_PAYLOAD_LENGTH] = {0};
+    //uint8_t readIn[PAYLOAD_LENGTH-2+1] = {0};   // will not be in final version - will be replaced with ADC, GPS data, etc
+    uint8_t data[PAYLOAD_LENGTH] = {0};
     uint8_t status = 0;
 
     while(1){
         //printf("\r\nentering while loop");
         #ifdef ROAMING_NODE
-            printf("\r\nEnter up to %d characters you want to send, then press enter:\r\n", DATA_PAYLOAD_LENGTH);
-            reads(readIn, DATA_PAYLOAD_LENGTH+1);
+            // TODO: swap out following lines for code that fills data (length DATA_PAYLOAD_LENGTH)
+            // with device ID, ADC readings, and GPS data
+
+            printf("\r\nEnter up to %d characters you want to send, then press enter:\r\n", PAYLOAD_LENGTH-2);
+            reads(data, PAYLOAD_LENGTH, 2);
             printf("\r\n");
 
-            for(i = 0; i < DATA_PAYLOAD_LENGTH; i++){
-                data[i] = readIn[i];
-                readIn[i] = 0;
-            }
+            // fill payload, leaving first bit empty for sequence number
+            data[0] = (uint8_t)((DEVICE_ID & 0x1F00) >> 8);
+            data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
+
+            //for(i = 0; i < (PAYLOAD_LENGTH); i++){
+            //    if(i >= 2)
+            //        data[i] = readIn[i-2];
+            //    readIn[i] = 0;
+            //}
 
             //printf("\r\nabout to call Roamer_EstablishConnection");
-            status = Roamer_EstablishConnection(data, DATA_PAYLOAD_LENGTH);
+            status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH);
         #endif
 
         #ifdef HOME_NODE
+            uint8_t data[PAYLOAD_LENGTH] = {0};
+            uint16_t deviceID;
+
             //printf("\r\nabout to call Home_WaitForConnection");
-            status = Home_WaitForConnection();
+            status = Home_WaitForConnection(data, PAYLOAD_LENGTH);
+
+            deviceID = ( (data[0] & 0x1F ) << 8) | data[1];
+
+            // print data to terminal TODO: send to a pc instead
+            printf("\r\nReceived from device %d:\r\n", deviceID);
+            for(i = 0; i < PAYLOAD_LENGTH; i++){
+                if(i >= 2)
+                    printf("%c", data[i]);
+                    data[i] = 0;
+            }
+            printf("\r\n");
         #endif
 
         //printf("\r\n%d", status);

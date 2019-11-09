@@ -2,6 +2,11 @@
 #define CONFIGURE_H_
 
 /*
+ * USER CONFIGURATIONS FOR DEVICE
+ */
+#define DEVICE_ID           5                   // device ID, range: 0-8191
+
+/*
  * USER CONFIGURATIONS FOR LORA
  */
 #define CENTER_FREQUENCY    915000000           // center frequency, units: Hz
@@ -12,7 +17,7 @@
 #define HEADER_MODE         LORA_HT_IMPLICIT    // header mode, options: LORA_HT_EXPLICIT, LORA_HT_IMPLICIT
 #define IQ_MODE             LORA_IQ_STANDARD    // IQ mode, options: LORA_IQ_STANDARD,LORA_IQ_INVERTED
 #define PREAMBLE_LENGTH     12                  // preamble length, range: 10-65535
-#define DATA_PAYLOAD_LENGTH 50                  // data payload length, range: 0-254
+#define PAYLOAD_LENGTH      50                  // payload length, range: 0-254
 #define CRC_ENABLE          LORA_CRC_ON         // CRC enable, options: LORA_CRC_ON, LORA_CRC_OFF
 
 #endif /* CONFIGURE_H_ */

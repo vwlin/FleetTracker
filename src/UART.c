@@ -72,14 +72,14 @@ int fputs(const char *_ptr, register FILE *_fp)
   return len;
 }
 
-uint32_t reads(uint8_t * buf, uint32_t maxSize){
+uint32_t reads(uint8_t * buf, uint32_t size, uint32_t offset){
     uint32_t numBytes = 0;
     int16_t temp;
     uint8_t character;
 
     ENABLE_RX_IR;
 
-    while(numBytes < maxSize){ // input is not greater than maximum size
+    while(numBytes < (size-offset)){ // input is not greater than maximum size
         temp = UART_ReceiveByte();
             while(temp == -1){
                 temp = UART_ReceiveByte();
@@ -94,7 +94,7 @@ uint32_t reads(uint8_t * buf, uint32_t maxSize){
             numBytes--;
         }
         else{
-            buf[numBytes] = character;
+            buf[numBytes+offset] = character;
             numBytes++;
         }
     }

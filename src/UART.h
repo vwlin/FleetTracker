@@ -95,10 +95,11 @@ int fputs(const char *_ptr, register FILE *_fp);
  *
  * Parameters:
  *  buf - array into which string is read
- *  maxSize - maximum possible size of the string
+ *  size - size of array (size of string will be size-offset)
+ *  offset - index to start storing string
  *
  * Returns the size of the string read in bytes
  */
-uint32_t reads(uint8_t * buf, uint32_t maxSize);
+uint32_t reads(uint8_t * buf, uint32_t size, uint32_t offset);
 
 #endif

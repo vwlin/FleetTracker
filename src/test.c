@@ -88,11 +88,11 @@ void testTransmitOneFrame(){
     uint16_t i;
     LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // enable txdone and timeout IRQs
 
-    uint8_t bufData[TOTAL_PAYLOAD] = {0};
-    for(i = 0; i < TOTAL_PAYLOAD; i++){
+    uint8_t bufData[PAYLOAD_LENGTH] = {0};
+    for(i = 0; i < PAYLOAD_LENGTH; i++){
         bufData[i] = i;
     }
-    LORA_WriteBuffer(0x00, bufData, TOTAL_PAYLOAD);
+    LORA_WriteBuffer(0x00, bufData, PAYLOAD_LENGTH);
 
     LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
     while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
@@ -103,8 +103,8 @@ uint8_t testReceiveOneFrame(){
     uint16_t i;
     uint8_t pass = 1;
 
-    uint8_t correctData[TOTAL_PAYLOAD] = {0};
-    for(i = 0; i < TOTAL_PAYLOAD; i++){
+    uint8_t correctData[PAYLOAD_LENGTH] = {0};
+    for(i = 0; i < PAYLOAD_LENGTH; i++){
         correctData[i] = i;
     }
 
@@ -114,10 +114,10 @@ uint8_t testReceiveOneFrame(){
     while( !(LORA_GetIrqStatus()) );
     LORA_ClearIrqStatus(0x0202);
 
-    uint8_t received[TOTAL_PAYLOAD] = {0};
-    LORA_ReadBuffer(0x00, received, TOTAL_PAYLOAD);
+    uint8_t received[PAYLOAD_LENGTH] = {0};
+    LORA_ReadBuffer(0x00, received, PAYLOAD_LENGTH);
 
-    for(i = 0; i < TOTAL_PAYLOAD; i++){
+    for(i = 0; i < PAYLOAD_LENGTH; i++){
         pass &= (received[i] == correctData[i]);
     }
 
