@@ -312,7 +312,7 @@ uint8_t ReceiveData(){
     int numErrors = 0;
     uint8_t previousSeqNum = 0x01; // assuming first sequence number is always 0
 
-    uint8_t data[MAX_PAYLOAD] = {0}; // received data to be stored here      // TODO: make variable instead of MAX_PAYLOAD
+    uint8_t data[DATA_PAYLOAD_LENGTH] = {0}; // received data to be stored here      // TODO: make variable instead of MAX_PAYLOAD
     uint8_t sequenceNumber[1] = {0}; // for sequence number
 
     uint8_t regData[1] = {0x00};
@@ -341,12 +341,12 @@ uint8_t ReceiveData(){
             if (sequenceNumber[0] == !(previousSeqNum)){
                 //printf("\r\nnot a repeat");
                 //read the buffer (don't read sequence number)
-                LORA_ReadBuffer(0x01, data, MAX_PAYLOAD);                // TODO: make variable instead of MAX_PAYLOAD
+                LORA_ReadBuffer(0x01, data, DATA_PAYLOAD_LENGTH);                // TODO: make variable instead of MAX_PAYLOAD
                 previousSeqNum = sequenceNumber[0];
 
                 // print data to terminal LATER send to a pc
                 printf("\r\nReceived:\r\n");
-                for(i = 0; i < MAX_PAYLOAD; i++){            // TO UPDATE    // TODO: make variable instead of MAX_PAYLOAD
+                for(i = 0; i < DATA_PAYLOAD_LENGTH; i++){            // TO UPDATE    // TODO: make variable instead of MAX_PAYLOAD
                     printf("%c", data[i]);
                     data[i] = 0;
                 }

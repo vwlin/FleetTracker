@@ -65,15 +65,15 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
 #define GIVEUP_TIMEOUT              4 * TIMEOUT_VALUE
 #define GIVEUP_RECEIVE              6
 
-#define MAX_PAYLOAD                 50
-#define MAX_USERID                  255          // maximum user ID possible
+#define TOTAL_PAYLOAD               DATA_PAYLOAD_LENGTH+1   // TOTAL_PAYLOAD = DATA_PAYLOAD_LENGTH + SEQUENCE_NUMBER_LENGTH
+#define MAX_USERID                  255                     // maximum user ID possible
 
-#define MAX_FILE_SIZE_BYTES         4            // maximum bytes needed to represent the size of the file
-#define MAX_USERID_BYTES            1            // maximum bytes needed to represent the user ID
-#define MAX_NUMFILES_SIZE_BYTES     1            // maximum bytes needed to represent the number of files Host->Client
+#define MAX_FILE_SIZE_BYTES         4                       // maximum bytes needed to represent the size of the file
+#define MAX_USERID_BYTES            1                       // maximum bytes needed to represent the user ID
+#define MAX_NUMFILES_SIZE_BYTES     1                       // maximum bytes needed to represent the number of files Host->Client
 
-#define MAX_SIZE_CHAR_LEN           5            // maximum number of digits in base 10 (as a string)
-#define MAX_USERID_CHAR_LEN         3            // maximum number of digits in base 10 (as a string)
+#define MAX_SIZE_CHAR_LEN           5                       // maximum number of digits in base 10 (as a string)
+#define MAX_USERID_CHAR_LEN         3                       // maximum number of digits in base 10 (as a string)
 
 /* TransmitFile
  * Sends data and waits for ACK after each frame sent, retransmits if errors occurred the first time or if ACK is lost

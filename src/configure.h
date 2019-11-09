@@ -12,7 +12,7 @@
 #define HEADER_MODE         LORA_HT_IMPLICIT    // header mode, options: LORA_HT_EXPLICIT, LORA_HT_IMPLICIT
 #define IQ_MODE             LORA_IQ_STANDARD    // IQ mode, options: LORA_IQ_STANDARD,LORA_IQ_INVERTED
 #define PREAMBLE_LENGTH     12                  // preamble length, range: 10-65535
-#define PAYLOAD_LENGTH      MAX_PAYLOAD+1       // payload length, range: 0-255                       //TOFIX: MAX_PAYLOAD+1?? not sure why +1
+#define DATA_PAYLOAD_LENGTH 50                  // data payload length, range: 0-254
 #define CRC_ENABLE          LORA_CRC_ON         // CRC enable, options: LORA_CRC_ON, LORA_CRC_OFF
 
 #endif /* CONFIGURE_H_ */
