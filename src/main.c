@@ -31,19 +31,11 @@ void main(void){
 
     char buf[10];
 
-    /*SPI_SendByte_GPS(0xB5);
-    SPI_SendByte_GPS(0x62);
-    SPI_SendByte_GPS(0x06);
-    SPI_SendByte_GPS(0x00);
-    SPI_SendByte_GPS(0x00);
-    SPI_SendByte_GPS(0x00);*/
-
     while(1){
-        SPI_SendByte_GPS(0xFF);
+        SPI_SendByte_GPS(0x03);
         int i = 0;
         for(i = 0; i < 1000; i++){}
         buf[0] = SPI_ReceiveByte_GPS();
         printf(buf);
-        printf("\r\n");
     }
 }
