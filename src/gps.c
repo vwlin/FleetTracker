@@ -11,3 +11,7 @@ void configureGPS(){
     SET_GPS_CS_AS_OUTPUT;
     SELECT_GPS_CS;
 }
+
+void ublox_configure_spi_port(){
+
+}

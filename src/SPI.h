@@ -7,6 +7,7 @@
  * LORA SPI
  * UCA0
  */
+
 #define SET_LORA_MOSI_MODE              P3SEL |= BIT3
 #define SET_LORA_MISO_MODE              P3SEL |= BIT4
 #define SET_LORA_SCK_MODE               P2SEL |= BIT7
@@ -109,5 +110,12 @@ unsigned char SPI_ReceiveByte_GPS();
  * Checks the BUSY bit in the UCB0 status register
  */
 unsigned char SPI_Busy_GPS();
+
+/*
+ * SPI_SendPacket_GPS
+ * Sends a packet of a given length over
+ * @param packet: array of characters
+ */
+void SPI_SendPacket_GPS(unsigned char* packet);
 
 #endif /* SPI_H_ */

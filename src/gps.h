@@ -24,3 +24,8 @@
 #define DESELECT_GPS_CS              GPS_CS_OUTPUT |= GPS_CS_PIN //drive HIGH
 
 void configureGPS();
+
+/*
+ * Configures SPI port of ublox module
+ */
+void ublox_configure_spi_port();
