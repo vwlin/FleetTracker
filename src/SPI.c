@@ -105,13 +105,7 @@ unsigned char SPI_ReceiveByte_GPS(){
     while( SPI_Busy_GPS() ){}
 
     // Poll RX buffer and proceed only if it is full
-    while(!(UCRXIFG & UCB0IFG)){
-        printf("waiting");
-        printf("\r\n");
-        /*char buf[1];
-        buf[0] = (unsigned char)UCB0RXBUF;
-        printf(buf);*/
-    }
+    while(!(UCRXIFG & UCB0IFG)){}
     buf[0] = (unsigned char)UCB0STAT;
     readValue = (unsigned char)UCB0RXBUF; // Flag automatically reset
 
