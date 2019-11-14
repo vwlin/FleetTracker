@@ -74,7 +74,7 @@ unsigned char SPI_Busy_LORA();
 #define ENABLE_USCIB0                   UCB0CTL1 &= ~BIT0       // Clear UCSWRST bit
 #define DISABLE_USCIB0                  UCB0CTL1 |= BIT0        // Set UCSWRST bit
 
-#define SET_UCB0_CLK_PHASE              UCB0CTL0 |= BIT7        // CPHA = 0 (capture on leading edge, change on trailing edge)
+#define SET_UCB0_CLK_PHASE              UCB0CTL0 |= BIT7        // CPHA = 1 (capture on falling edge, change on leading edge)
 #define SET_UCB0_CLK_POLARITY           UCB0CTL0 &= ~BIT6       // CPOL = 0 (inactive at 0)
 #define SET_UCB0_ENDIAN                 UCB0CTL0 |= BIT5        // MSB first
 #define SET_UCB0_MASTER_MODE            UCB0CTL0 |= UCMST       // Master mode
