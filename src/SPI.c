@@ -99,20 +99,12 @@ void SPI_SendByte_GPS(unsigned char sendValue){
 }
 
 unsigned char SPI_ReceiveByte_GPS(){
-    char buf[1];
     unsigned char readValue;
 
     while( SPI_Busy_GPS() ){}
 
     // Poll RX buffer and proceed only if it is full
-    while(!(UCRXIFG & UCB0IFG)){
-        printf("waiting");
-        printf("\r\n");
-        /*char buf[1];
-        buf[0] = (unsigned char)UCB0RXBUF;
-        printf(buf);*/
-    }
-    buf[0] = (unsigned char)UCB0STAT;
+    while(!(UCRXIFG & UCB0IFG)){}
     readValue = (unsigned char)UCB0RXBUF; // Flag automatically reset
 
     return readValue;
@@ -120,4 +112,12 @@ unsigned char SPI_ReceiveByte_GPS(){
 
 unsigned char SPI_Busy_GPS(){
     return (UCB0STAT & BIT0);
+}
+
+void SPI_SendPacket_GPS(unsigned char* packet){
+    unsigned int length = sizeof(packet);
+    unsigned int i;
+    for(i = 0; i < length; i++){
+        SPI_SendByte_GPS(packet[i]);
+    }
 }

@@ -7,6 +7,7 @@
  * LORA SPI
  * UCA0
  */
+
 #define SET_LORA_MOSI_MODE              P3SEL |= BIT3
 #define SET_LORA_MISO_MODE              P3SEL |= BIT4
 #define SET_LORA_SCK_MODE               P2SEL |= BIT7
@@ -73,7 +74,7 @@ unsigned char SPI_Busy_LORA();
 #define ENABLE_USCIB0                   UCB0CTL1 &= ~BIT0       // Clear UCSWRST bit
 #define DISABLE_USCIB0                  UCB0CTL1 |= BIT0        // Set UCSWRST bit
 
-#define SET_UCB0_CLK_PHASE              UCB0CTL0 |= BIT7        // CPHA = 0 (capture on leading edge, change on trailing edge)
+#define SET_UCB0_CLK_PHASE              UCB0CTL0 |= BIT7        // CPHA = 1 (capture on falling edge, change on leading edge)
 #define SET_UCB0_CLK_POLARITY           UCB0CTL0 &= ~BIT6       // CPOL = 0 (inactive at 0)
 #define SET_UCB0_ENDIAN                 UCB0CTL0 |= BIT5        // MSB first
 #define SET_UCB0_MASTER_MODE            UCB0CTL0 |= UCMST       // Master mode
@@ -109,5 +110,12 @@ unsigned char SPI_ReceiveByte_GPS();
  * Checks the BUSY bit in the UCB0 status register
  */
 unsigned char SPI_Busy_GPS();
+
+/*
+ * SPI_SendPacket_GPS
+ * Sends a packet of a given length over
+ * @param packet: array of characters
+ */
+void SPI_SendPacket_GPS(unsigned char* packet);
 
 #endif /* SPI_H_ */

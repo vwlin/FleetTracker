@@ -1,6 +1,7 @@
 #include <driverlib/MSP430F5xx_6xx/gpio.h>
 #include <msp430.h>
 #include <stdio.h>
+#include "SPI.h"
 
 #define SAFEBOOT_DIRECTION           P6DIR
 #define SAFEBOOT_PIN                 BIT4
@@ -24,3 +25,8 @@
 #define DESELECT_GPS_CS              GPS_CS_OUTPUT |= GPS_CS_PIN //drive HIGH
 
 void configureGPS();
+
+/*
+ * Configures SPI port of ublox module
+ */
+void ublox_configure_spi_port();

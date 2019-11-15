@@ -29,10 +29,10 @@ void main(void){
     Configure_SPI_GPS();
     configureGPS();
 
-    char buf[10];
+    char buf[1];
 
     while(1){
-        SPI_SendByte_GPS(0x03);
+        ublox_configure_spi_port();
         int i = 0;
         for(i = 0; i < 1000; i++){}
         buf[0] = SPI_ReceiveByte_GPS();
