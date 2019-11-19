@@ -29,4 +29,4 @@ void configureGPS();
 /*
  * Configures SPI port of ublox module
  */
-void ublox_configure_spi_port();
+void ublox_configure_spi_port(unsigned char* returnPacket);

@@ -9,10 +9,10 @@ void configureGPS(){
 
     SET_GPS_CS_AS_GPIO;
     SET_GPS_CS_AS_OUTPUT;
-    SELECT_GPS_CS;
+    DESELECT_GPS_CS;
 }
 
-void ublox_configure_spi_port(){
+void ublox_configure_spi_port(unsigned char * returnPacket){
     //create empty packet
     unsigned char packet[28];
 
@@ -68,7 +68,6 @@ void ublox_configure_spi_port(){
     packet[27] = ck_b; //checksum byte: CK_B
 
     //send packet
-    SPI_SendPacket_GPS(packet);
-
+    SPI_SendPacket_GPS(packet, 28, returnPacket);
 
 }

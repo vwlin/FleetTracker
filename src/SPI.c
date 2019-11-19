@@ -1,5 +1,6 @@
 #include "SPI.h"
 #include <stdio.h>
+#include "gps.h"
 
 /*
  * LORA chip
@@ -114,10 +115,12 @@ unsigned char SPI_Busy_GPS(){
     return (UCB0STAT & BIT0);
 }
 
-void SPI_SendPacket_GPS(unsigned char* packet){
-    unsigned int length = sizeof(packet);
+void SPI_SendPacket_GPS(unsigned char* packet, int size, unsigned char* returnPacket){
     unsigned int i;
-    for(i = 0; i < length; i++){
+    SELECT_GPS_CS;
+    for(i = 0; i < size; i++){
         SPI_SendByte_GPS(packet[i]);
+        returnPacket[i] = SPI_ReceiveByte_GPS();
     }
+    DESELECT_GPS_CS;
 }

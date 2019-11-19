@@ -28,14 +28,15 @@ void main(void){
     Configure_UART();
     Configure_SPI_GPS();
     configureGPS();
-
-    char buf[1];
-
+    unsigned char returnPacket[28];
+    ublox_configure_spi_port(returnPacket);
+    int i;
+    for(i = 0; i < 28; i++){
+        printf("%s\n", returnPacket);
+    }
+    printf("\r\n");
     while(1){
-        ublox_configure_spi_port();
         int i = 0;
         for(i = 0; i < 1000; i++){}
-        buf[0] = SPI_ReceiveByte_GPS();
-        printf(buf);
     }
 }

@@ -116,6 +116,6 @@ unsigned char SPI_Busy_GPS();
  * Sends a packet of a given length over
  * @param packet: array of characters
  */
-void SPI_SendPacket_GPS(unsigned char* packet);
+void SPI_SendPacket_GPS(unsigned char* packet, int size, unsigned char* returnPacket);
 
 #endif /* SPI_H_ */
