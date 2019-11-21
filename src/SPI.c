@@ -115,12 +115,22 @@ unsigned char SPI_Busy_GPS(){
     return (UCB0STAT & BIT0);
 }
 
-void SPI_SendPacket_GPS(unsigned char* packet, int size, unsigned char* returnPacket){
+void SPI_SendPacket_GPS(unsigned char* packet, int size){
     unsigned int i;
     SELECT_GPS_CS;
     for(i = 0; i < size; i++){
         SPI_SendByte_GPS(packet[i]);
-        returnPacket[i] = SPI_ReceiveByte_GPS();
+        SPI_ReceiveByte_GPS();
+    }
+    DESELECT_GPS_CS;
+}
+
+void SPI_ReceivePacket_GPS(unsigned char* packet, int size){
+    unsigned int i;
+    SELECT_GPS_CS;
+    for(i = 0; i < size; i++){
+        SPI_SendByte_GPS(0);
+        packet[i] = SPI_ReceiveByte_GPS();
     }
     DESELECT_GPS_CS;
 }

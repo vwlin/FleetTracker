@@ -30,3 +30,5 @@ void configureGPS();
  * Configures SPI port of ublox module
  */
 void ublox_configure_spi_port(unsigned char* returnPacket);
+void configure_ublox_nav_pvt(uint8_t* ublox_nav);
+void configure_ublox_poll(uint8_t* ublox_poll, uint8_t id1, uint8_t id2);

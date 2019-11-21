@@ -28,15 +28,26 @@ void main(void){
     Configure_UART();
     Configure_SPI_GPS();
     configureGPS();
-    unsigned char returnPacket[28];
-    ublox_configure_spi_port(returnPacket);
+    unsigned char configPacket[28];
+    unsigned char navPacket[8];
+    //unsigned char tpPacket[8];
+    ublox_configure_spi_port(configPacket);
+    configure_ublox_poll(navPacket, 0x01, 0x07);
+    unsigned char ublox_input_buffer[100];
     int i;
-    for(i = 0; i < 28; i++){
-        printf("%s\n", returnPacket);
-    }
-    printf("\r\n");
     while(1){
-        int i = 0;
-        for(i = 0; i < 1000; i++){}
+        SPI_SendPacket_GPS(configPacket, 28);
+        while(ublox_input_buffer[0] == 0) {
+            SPI_ReceivePacket_GPS(ublox_input_buffer,100);
+        }
+        while((ublox_input_buffer[0] != 0xb5)){
+            SPI_SendPacket_GPS(navPacket,8);
+            for(i = 0; i<100; i++) ublox_input_buffer[i]=0;
+            while(ublox_input_buffer[0] == 0) {
+                SPI_ReceivePacket_GPS(ublox_input_buffer,100);
+           }
+        }
+        printf("hello\r\n");
     }
+
 }
