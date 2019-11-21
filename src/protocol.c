@@ -8,9 +8,9 @@ typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 //extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
-    uint8_t receivedCode[1] = {0};
-    uint8_t sendCode[1] = {0};
+uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
+    uint8_t receivedHello[2] = {0};
+    uint8_t sendHello[1] = {0};
     uint16_t irqStatus;
 
     HomeState currentState = Listen;
@@ -22,10 +22,10 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq)
             // Wait for client to send "Hello" ping
             case Listen:
                 //printf("\r\nlistening for a hello");
-                irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
+                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 2, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
 
                 // Ping received with no errors, and password is correct
-                if( (irqStatus == IRQ_RXDONE) && (*receivedCode == PASSWORD) ){
+                if( (irqStatus == IRQ_RXDONE) && (receivedHello[0] == PASSWORD) ){
                     nextState = Greet; // Continue with conversation
                 }
                 // Ping received with errors password is incorrect
@@ -37,8 +37,8 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq)
             // Send "Hello" response to client
             case Greet:
                 //printf("\r\nresponding to client");
-                sendCode[0] = PASSWORD;
-                LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
+                sendHello[0] = PASSWORD;
+                LORA_TransmitAndWait(0x00, sendHello, 1, 0, IRQ_TXDONE);
 
                 nextState = Receive; // Continue with conversation
                 break;
@@ -46,7 +46,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq)
             // Receive data
             case Receive:
                 //printf("\r\nabout to start receiving data");
-                return ReceiveData(data, size, startSeq);
+                return ReceiveData(data, size, receivedHello[1]);
                 // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
                 // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
@@ -56,7 +56,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq)
 
 uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
     uint8_t receivedCode[1] = {0};
-    uint8_t sendCode[1] = {0};
+    uint8_t sendHello[2] = {0}; // PASSWORD, starting sequence number
     uint16_t irqStatus;
 
     uint8_t flags[1] = {0};
@@ -73,8 +73,9 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
             // Ping host with password
             case Ping:
                 //printf("\r\npinging");
-                sendCode[0] = PASSWORD;
-                LORA_TransmitAndWait(0x00, sendCode, 1, 0, IRQ_TXDONE);
+                sendHello[0] = PASSWORD;
+                sendHello[1] = *startSeq;
+                LORA_TransmitAndWait(0x00, sendHello, 2, 0, IRQ_TXDONE);
 
                 nextState = WaitForGreeting;
                 break;
@@ -322,7 +323,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
 // TODO: move seq number handling to main or a function external to this one
 // in each duty cycle, only sending one distinct packet at a time
 // so sequence numbers need to track duty cycles effectively
-uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
     uint8_t i;
     int totalPackets = 1; //delete later
 
@@ -331,7 +332,7 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
 
     uint8_t previousSeqNum = 0x00;
 
-    if(*startSeq == 0)
+    if(startSeq == 0)
         previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is 0)
     else
         previousSeqNum = 0x00; // sequence number 0, shifted left 7 (assuming first sequence number is 1)
@@ -393,12 +394,6 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
             return 1;
         }
     }
-
-    if(previousSeqNum == 0x80) // expecting zero next
-        *startSeq = 0;
-    else // expecting 1 next
-        *startSeq = 1;
-
     LORA_SetStandby(STDBY_RC);
     return 0;
 }

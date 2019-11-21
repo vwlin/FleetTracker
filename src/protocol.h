@@ -31,14 +31,13 @@
  * Parameters:
  *  data - pointer to array of 8 bit data to be received
  *  size - size of data to receive in bytes
- *  startSeq - pointer to array (size 1) with starting sequence number for data transmission, 0 or 1
  *
  * Returns code:
  * 1 if failed
  * else 0
  */
 
-uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq);
+uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size);
 
 
 /*
@@ -48,7 +47,6 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq)
  * Parameters:
  *  data - pointer to array of 8 bit data to be transmitted
  *  size - size of data to transmit in bytes
- *  startSeq - pointer to array (size 1) with starting sequence number for data transmission, 0 or 1
  *
  * Returns code:
  * 1 if failed
@@ -95,10 +93,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq);
  * Parameters:
  *  data - pointer to array of 8 bit data to be received
  *  size - size of data to receive in bytes
- *  startSeq - pointer to array (size 1) with starting sequence number for data transmission, 0 or 1
+ *  startSeq - starting sequence number for data transmission, 0 or 1
  *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq);
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq);
 
 #endif /* NODE_H_ */
