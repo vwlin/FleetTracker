@@ -23,6 +23,7 @@
 
 volatile unsigned char payload[92];
 unsigned int year, month, day, hour, min, sec;
+long latitude, longitude;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -40,12 +41,11 @@ void main(void){
     int i;
 
 
-    //clear input buffer
-    for(i = 0; i<100; i++){
-        ublox_input_buffer[i] = 0;
-    }
+
 
     while(1){
+
+
 
         //debugging
         for(i = 0; i<92; i++){
@@ -57,6 +57,16 @@ void main(void){
         hour = (int)payload[8] - 5; //subtract 5 to get our local time
         min = (int)payload[9];
         sec = (int)payload[10];
+        longitude = ((long) payload[27]) << 24 | ((long) payload[26]) << 16 |
+                ((long) payload[25]) << 8 | (long) (payload[24]);
+        latitude = ((long) payload[31]) << 24 | ((long) payload[30]) << 16 |
+                        ((long) payload[29]) << 8 | (long) (payload[28]);
+
+
+        //clear input buffer
+        for(i = 0; i<100; i++){
+            ublox_input_buffer[i] = 0;
+        }
 
         SPI_SendPacket_GPS(configPacket, 28);
         while(ublox_input_buffer[0] == 0) {
