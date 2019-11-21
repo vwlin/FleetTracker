@@ -120,7 +120,7 @@ void main(void){
             uint16_t deviceID;
 
             //printf("\r\nabout to call Home_WaitForConnection");
-            status = Home_WaitForConnection(data, PAYLOAD_LENGTH, seqNumber);
+            status = Home_WaitForConnection(data, PAYLOAD_LENGTH);
 
             deviceID = ( (data[0] & 0x1F ) << 8) | data[1];
 

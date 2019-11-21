@@ -55,7 +55,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 }
 
 uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
-    uint8_t receivedCode[1] = {0};
+    uint8_t receivedHello[1] = {0};
     uint8_t sendHello[2] = {0}; // PASSWORD, starting sequence number
     uint16_t irqStatus;
 
@@ -83,11 +83,11 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
             // Wait for client to respond with "Hello" greeting
             case WaitForGreeting:
                 //printf("\r\nwaiting for greeting");
-                irqStatus = LORA_WaitForReceive(0x00, receivedCode, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
+                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
 
                 // Greeting received with no errors and before timeout
                 if(irqStatus == IRQ_RXDONE){
-                    if(*receivedCode == PASSWORD)
+                    if(*receivedHello == PASSWORD)
                         nextState = Transmit;
                     else
                         nextState = Ping; // Retransmit "Hello" ping
