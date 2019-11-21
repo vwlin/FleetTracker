@@ -8,7 +8,7 @@ typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 //extern int maxRetransmit; // data transfer
 extern int errorCount; // data transfer
 
-uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
+uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
     uint16_t irqStatus;
@@ -46,7 +46,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
             // Receive data
             case Receive:
                 //printf("\r\nabout to start receiving data");
-                return ReceiveData(data, size);
+                return ReceiveData(data, size, startSeq);
                 // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
                 // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
@@ -54,7 +54,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
     }
 }
 
-uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
+uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
     uint8_t receivedCode[1] = {0};
     uint8_t sendCode[1] = {0};
     uint16_t irqStatus;
@@ -115,7 +115,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
             // transmit data
             case Transmit:
                 //printf("\r\nabout to transmit data");
-                return TransmitData(data, size);
+                return TransmitData(data, size, startSeq);
                 // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
                 // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
         }
@@ -123,16 +123,24 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size){
     }
 }
 
-uint8_t TransmitData(uint8_t * data, uint8_t size){
+uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     int totalPackets = 1; // delete later
 
     State currentState;
     State previousState;
     previousState = WaitACK1;
-    currentState = Send0;               //always starts at send0
     State nextState;
     int count = 1;
     int retransmitCount = 0;
+
+    if(*startSeq == 0){
+        currentState = Send0;
+        previousState = WaitACK1;
+    }
+    else{
+        currentState = Send1;
+        previousState = WaitACK0;
+    }
 
     // Prepare sequence values for writing into LoRa buffer
     uint8_t seq0 = 0;
@@ -299,7 +307,14 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
         currentState = nextState;
     }
 
+    if(nextState == Send0)
+        *startSeq = 0;
+    else
+        *startSeq = 1;
+
     LORA_SetStandby(STDBY_RC);
+
+
     return 0;
 }
 
@@ -307,13 +322,19 @@ uint8_t TransmitData(uint8_t * data, uint8_t size){
 // TODO: move seq number handling to main or a function external to this one
 // in each duty cycle, only sending one distinct packet at a time
 // so sequence numbers need to track duty cycles effectively
-uint8_t ReceiveData(uint8_t * data, uint8_t size){
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     uint8_t i;
     int totalPackets = 1; //delete later
 
     int count = 1;
     int numErrors = 0;
-    uint8_t previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is always 0)
+
+    uint8_t previousSeqNum = 0;
+
+    if(*startSeq == 0)
+        previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is 0)
+    else
+        previousSeqNum = 0x00; // sequence number 0, shifted left 7 (assuming first sequence number is 1)
 
     uint8_t byteOne[1] = {0}; // for sequence number
 
@@ -372,6 +393,12 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size){
             return 1;
         }
     }
+
+    if(previousSeqNum == 0x80) // expecting zero next
+        *startSeq = 0;
+    else // expecting 1 next
+        *startSeq = 1;
+
     LORA_SetStandby(STDBY_RC);
     return 0;
 }
