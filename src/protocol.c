@@ -329,7 +329,7 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     int count = 1;
     int numErrors = 0;
 
-    uint8_t previousSeqNum = 0;
+    uint8_t previousSeqNum = 0x00;
 
     if(*startSeq == 0)
         previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is 0)
@@ -360,7 +360,7 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t * startSeq){
             byteOne[0] &= 0x80; // parse out sequence number
 
             // If not a repeat, put the packet in the file
-            if ( byteOne[0] == !(previousSeqNum)){
+            if ( byteOne[0] != previousSeqNum){
                 //printf("\r\nnot a repeat");
                 //read the buffer
                 LORA_ReadBuffer(0x00, data, size);
