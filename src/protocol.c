@@ -319,12 +319,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     return 0;
 }
 
-// for vivian:
-// TODO: move seq number handling to main or a function external to this one
-// in each duty cycle, only sending one distinct packet at a time
-// so sequence numbers need to track duty cycles effectively
 uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
-    uint8_t i;
     int totalPackets = 1; //delete later
 
     int count = 1;
