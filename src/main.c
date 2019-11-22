@@ -91,6 +91,7 @@ void main(void){
     //uint8_t readIn[PAYLOAD_LENGTH-2+1] = {0};   // will not be in final version - will be replaced with ADC, GPS data, etc
     uint8_t data[PAYLOAD_LENGTH] = {0};
     uint8_t status = 0;
+    uint8_t seqNumber[1] = {0}; // start with a sequence number of 0
 
     while(1){
         //printf("\r\nentering while loop");
@@ -111,7 +112,7 @@ void main(void){
             data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
 
             //printf("\r\nabout to call Roamer_EstablishConnection");
-            status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH);
+            status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
         #endif
 
         #ifdef HOME_NODE

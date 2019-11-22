@@ -52,14 +52,14 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size);
  * 1 if failed
  * else 0
  */
-uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
+uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq);
 
 
 /*
  * DATA TRANSFER PROCEDURE
  */
 
-#define TIMEOUT_IN_SECONDS          1
+#define TIMEOUT_IN_SECONDS          .750
 #define TIMEOUT_VALUE               TIMEOUT_IN_SECONDS/.000015625
 #define GIVEUP                      4
 #define GIVEUP_TRANSMIT             4
@@ -79,10 +79,11 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size);
  * Parameters:
  *  data - pointer to array of 8 bit data to be transmitted
  *  size - size of data to transmit in bytes
+ *  startSeq - pointer to array (size 1) with starting sequence number for data transmission, 0 or 1
  *
  * Return code: 1 if there was an error, 0 if transmitted successfully
  */
-uint8_t TransmitData(uint8_t * data, uint8_t size);
+uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq);
 
 
 /* ReceiveFile
@@ -92,9 +93,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size);
  * Parameters:
  *  data - pointer to array of 8 bit data to be received
  *  size - size of data to receive in bytes
+ *  startSeq - starting sequence number for data transmission, 0 or 1
  *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-uint8_t ReceiveData(uint8_t * data, uint8_t size);
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq);
 
 #endif /* NODE_H_ */
