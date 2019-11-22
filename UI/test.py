@@ -1,22 +1,19 @@
-import matplotlib.pyplot as plt
-import matplotlib.cm
- 
-from mpl_toolkits.basemap import Basemap
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-from matplotlib.colors import Normalize
-from matplotlib.cbook import get_sample_data
-import numpy as np
+from map import add_point
+from uart import uart_recv
+from payload import extract_payload
 
-from Map import Map
+# get (decrypted) data from uart
+#packet = uart_recv()
 
-map = Map()
-map.init_map()
-map.add_point(38.078013, -78.591940)
-map.add_point(38.081811, -78.593103)
-map.add_point(38.057178, -78.597632)
-map.add_point(38.055148, -78.569812)
-map.add_point(38.042553, -78.511540)
-map.add_point(38.032519, -78.514622)
-map.add_point(38.031613, -78.511322)
-map.draw_map()
+# deconstruct packet to get all data
+#point,timestamp = extract_payload(packet)
+
+# add points to Map
+add_point((38.078013, -78.591940),'time')
+add_point((38.081811, -78.593103),'time')
+add_point((38.057178, -78.597632),'time')
+add_point((38.055148, -78.569812),'time')
+add_point((38.042553, -78.511540),'time')
+add_point((38.032519, -78.514622),'time')
+add_point((38.031613, -78.511322),'time')
+
