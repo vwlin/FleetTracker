@@ -1,62 +1,54 @@
+import os 
+import folium
+from folium import plugins
+from folium.features import CustomIcon
 import matplotlib.pyplot as plt
-import matplotlib.cm
- 
-from mpl_toolkits.basemap import Basemap
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-from matplotlib.colors import Normalize
-from matplotlib.cbook import get_sample_data
-import matplotlib.image as mpimg
-import numpy as np
-import pickle
+from selenium import webdriver
 
-class Map():
-    def __init__(self):
-        self.x = []
-        self.y = []
-        
-    def init_map(self):
-        plt.ion()
-        fig, ax = plt.subplots(figsize=(40,30))
-        #westlimit=-83.71; southlimit=36.51; eastlimit=-75.88; northlimit=39.5
-        # Albemarle county
-        m = Basemap(resolution='l', projection='merc', 
-                    lat_0=54.5, lon_0=-4.36, 
-                    llcrnrlon=-78.850380, llcrnrlat=37.721760, 
-                    urcrnrlon=-78.206402, urcrnrlat=38.273587)
-        m.readshapefile('boundaries/cville_roads/tl_2015_51540_roads','cvl_roads',color='r')
-        m.readshapefile('boundaries/albemarle_roads/tl_2019_51003_roads','alb_roads',color='r')
-        m.readshapefile('boundaries/tl_2016_51_cousub', 'counties')
-        self.m = m
-        plt.show()
-        #save figure
-        pickle.dump(ax, open("myplot.pickle", "wb"))
-        plt.close()
-    
-    def add_point(self,lat,lon):
-        xp, yp = self.m(lon,lat)
-        self.x.append(xp)
-        self.y.append(yp)
+# set up web driver for Firefox
+driver = webdriver.Chrome()
 
-    def draw_map(self):
-        #plt.ioff()
-        plt.close()
-        ax = pickle.load(open('myplot.pickle','rb'))
-        plt.plot(self.x, self.y, 'go', markersize=2)
-        plt.plot(self.x, self.y, 'g')
-        plt.show()
-        plt.pause(5)
-    def draw_map_final(self):
-        plt.close()
-        plt.ioff()
-        ax = pickle.load(open('myplot.pickle','rb'))
-        plt.plot(self.x, self.y, 'go', markersize=2)
-        plt.plot(self.x, self.y, 'g')
-        plt.show()
-        
+# Create a map using the Map() function and the coordinates for Charlottesville
+my_map = folium.Map(location=[38.055148, -78.569812], zoom_start=12)
 
+points = []
+timestamps = []
 
+def add_point(point, time):
+    dirpath = os.path.dirname(os.path.abspath(__file__))
+    points.append(point)
+    timestamps.append(time)
+    #redraw map
+    my_map = folium.Map(location=[38.055148, -78.569812], zoom_start=12)
+    #add markers
+    for i in range(len(points)-1):
+        point = points[i]
+        timestamp = timestamps[i]
+        folium.Marker(
+            location=[point[0], point[1]],
+            popup= timestamp
+        ).add_to(my_map)
+    #add lines
+    folium.PolyLine(points).add_to(my_map)
+    # add bus icon for last collected point
+    icon_image = 'bus.png'
+    icon = CustomIcon(
+        icon_image,
+        icon_size=(50, 50),
+        #icon_anchor=(20,30),
+        popup_anchor=(0,-10)
+    )
+    last_point = points[-1]
+    last_timestamp = timestamps[-1]
+    marker = folium.Marker(
+        location=[last_point[0], last_point[1]],
+        icon=icon,
+        popup=last_timestamp
+    )
+    my_map.add_child(marker)
 
-
-
+    # display map
+    my_map.save('index.html')
+    driver.get("file:///"+dirpath+"/index.html")
+    plt.pause(5)
 
