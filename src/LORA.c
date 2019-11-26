@@ -839,7 +839,6 @@ int LORA_SetPacketParams(uint8_t GFSK_pdl, uint8_t GFSK_swLen, uint8_t GFSK_ac,
     return 1;
 }
 
-//????????????????????
 uint8_t LORA_SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak, uint8_t cadDetMin,
                        uint8_t cadExitMode, uint32_t cadTimeout){
     if(cadTimeout > SIZE_24_BIT_MAX_VAL)
