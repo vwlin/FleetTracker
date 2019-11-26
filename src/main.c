@@ -21,9 +21,9 @@
  * TEST
  */
 
-#define ROAMING_NODE
+//#define ROAMING_NODE
 //#define HOME_NODE
-//#define TEST
+#define TEST
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -33,6 +33,10 @@ void main(void){
     Configure_UART();
     Configure_SPI_LORA();
     Configure_LORA();
+
+    #ifdef TEST
+    volatile uint8_t passLORA = testLORA();
+    #endif
 
     // Reset LoRa chip
     LORA_Reset();
@@ -66,11 +70,13 @@ void main(void){
     LORA_SetDIO2AsRfSwitchCtrl(DIO2_AS_SWITCH); // Set RF switch to pass through TX output
 
     #ifdef TEST
-    volatile uint8_t passLORA = testLORA();
+    //volatile uint8_t passLORA = testLORA();
+    //LORA_SetTxContinuousWave();
+    LORA_SetTxInfinitePreamble();
     //volatile uint8_t passRF = testReceiveOneFrame();
 
     while(1){
-        testTransmitOneFrame();
+        //testTransmitOneFrame();
     }
     #endif
 
@@ -110,6 +116,10 @@ void main(void){
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1F00) >> 8);
             data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
+
+            // above this, out of while loop
+            // set cad
+            // check irq
 
             //printf("\r\nabout to call Roamer_EstablishConnection");
             status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
