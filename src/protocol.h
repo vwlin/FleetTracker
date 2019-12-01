@@ -65,6 +65,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
 #define GIVEUP_TRANSMIT             4
 #define GIVEUP_TIMEOUT              4 * TIMEOUT_VALUE
 #define GIVEUP_RECEIVE              6
+#define GIVEUP_MAC                  5                       // number of times to sense for channel activity before giving up
 
 #define MAX_FILE_SIZE_BYTES         4                       // maximum bytes needed to represent the size of the file
 #define MAX_USERID_BYTES            1                       // maximum bytes needed to represent the user ID

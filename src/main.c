@@ -21,9 +21,9 @@
  * TEST
  */
 
-//#define ROAMING_NODE
+#define ROAMING_NODE
 //#define HOME_NODE
-#define TEST
+//#define TEST
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -59,7 +59,7 @@ void main(void){
     LORA_SetModulationParams(0, 0, 0, SPREADING_FACTOR, CODING_RATE, LDR_OPT_ENABLE, BANDWIDTH); // configurable in configure.h
     LORA_SetPacketParams(0, 0, 0, 0, 0, HEADER_MODE, IQ_MODE, PREAMBLE_LENGTH, PAYLOAD_LENGTH, CRC_ENABLE); // configurable in configure.h // todo figure out why TOTAL_PAYLOAD+1, +1 necessary?
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
-    //LORA_SetCadParams(CAD_ON_4_SYMB, 25, 10, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
+    LORA_SetCadParams(CAD_ON_4_SYMB, 25, 10, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
 
     // Set LoRa Sync word MSB and LSB ?? needed? TODO: check if needed
     uint8_t regData[2] = {0x14, 0x24};
@@ -95,10 +95,18 @@ void main(void){
         // device ID 13 bits
         // character data  13 bytes (needs to be full bytes bc characters)
     uint8_t i;
-    //uint8_t readIn[PAYLOAD_LENGTH-2+1] = {0};   // will not be in final version - will be replaced with ADC, GPS data, etc
     uint8_t data[PAYLOAD_LENGTH] = {0};
     uint8_t status = 0;
+
+    // RDT protocol related variables
     uint8_t seqNumber[1] = {0}; // start with a sequence number of 0
+
+    // MAC protocol related variables
+    uint16_t channelStatus;
+    uint8_t numAttempts;
+
+    // duty cycling related variables
+    uint8_t sleepTime = 0; //TODO: TYPE? units?
 
     while(1){
         //printf("\r\nentering while loop");
@@ -118,13 +126,45 @@ void main(void){
             data[0] = (uint8_t)((DEVICE_ID & 0x1F00) >> 8);
             data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
 
-            // perform MAC-related checks
-            // enable irq caddone
-            //LORA_SetCAD();
-            // check irq caddetected
+            // check for channel activity and repeat if activity detected
+            numAttempts = 0;
+            channelStatus = 0;
+            while( (channelStatus == 0x0100) && (numAttempts <= GIVEUP_MAC) ){ // repeat as long as CAD has been detected
+                LORA_SetDioIrqParams(0x0180, 0x0000, 0x0000, 0x0000); // enable CadDone and CadDetected IRQs
+                LORA_SetCAD(); // begin CAD
+                while( !LORA_GetIrqStatus() ); // poll CadDone IRQ
+                channelStatus = LORA_GetIrqStatus(); // check CadDetected IRQ
+                LORA_ClearIrqStatus(0x0180); // clear CadDone and CadDetected
+                if(channelStatus == 0x0100) // if activity detected, wait
+                    _delay_cycles(10);  // TODO: make exp backoff lookup table, convert to cycles based on clock freq
+                numAttempts++;
 
-            //printf("\r\nabout to call Roamer_EstablishConnection");
-            status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
+                // for testing - print out results
+                if(channelStatus == 0x0100)
+                    printf("\r\nchannel activity detected, attempt %d", numAttempts);
+                else
+                    printf("\r\nno channel activity detected, attempt %d", numAttempts);
+            }
+            printf("\r\nexited MAC loop"); // for testing
+
+            // proceed based on results of MAC checks
+            if(numAttempts > GIVEUP_MAC){
+                // calculate sleepTime
+            }
+            if(channelStatus != 0x0100){ // no activity detected
+                //printf("\r\nabout to call Roamer_EstablishConnection");
+                status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
+                // TODO: within transmit data function:
+                    // implement roaming node sub-block flow diagram
+                    // need to keep track of numSuccess as a pointer and pass it to the function
+                    // need to keep track of numFailures as a pointer and pass it to the function
+                    // make the decisions based on what was passed into the function?
+                    // based on results, update the pointer from within the function
+                    // update status accordingly (add a third status result - success, failure and retransmit, failure and giveup
+                sleepTime = 10; //min?
+            }
+
+            // sleep amount sleepTime
         #endif
 
         #ifdef HOME_NODE
