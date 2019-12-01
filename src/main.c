@@ -59,7 +59,7 @@ void main(void){
     LORA_SetModulationParams(0, 0, 0, SPREADING_FACTOR, CODING_RATE, LDR_OPT_ENABLE, BANDWIDTH); // configurable in configure.h
     LORA_SetPacketParams(0, 0, 0, 0, 0, HEADER_MODE, IQ_MODE, PREAMBLE_LENGTH, PAYLOAD_LENGTH, CRC_ENABLE); // configurable in configure.h // todo figure out why TOTAL_PAYLOAD+1, +1 necessary?
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
-    LORA_SetCadParams(CAD_ON_4_SYMB, 25, 10, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
+    LORA_SetCadParams(CAD_ON_8_SYMB, 25, 8, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
 
     // Set LoRa Sync word MSB and LSB ?? needed? TODO: check if needed
     uint8_t regData[2] = {0x14, 0x24};
@@ -128,19 +128,19 @@ void main(void){
 
             // check for channel activity and repeat if activity detected
             numAttempts = 0;
-            channelStatus = 0;
-            while( (channelStatus == 0x0100) && (numAttempts <= GIVEUP_MAC) ){ // repeat as long as CAD has been detected
+            channelStatus = 0x0180;
+            while( ( channelStatus & 0x0100) && (numAttempts <= GIVEUP_MAC) ){ // repeat as long as CAD has been detected
                 LORA_SetDioIrqParams(0x0180, 0x0000, 0x0000, 0x0000); // enable CadDone and CadDetected IRQs
                 LORA_SetCAD(); // begin CAD
                 while( !LORA_GetIrqStatus() ); // poll CadDone IRQ
                 channelStatus = LORA_GetIrqStatus(); // check CadDetected IRQ
                 LORA_ClearIrqStatus(0x0180); // clear CadDone and CadDetected
-                if(channelStatus == 0x0100) // if activity detected, wait
+                if(channelStatus & 0x0100) // if activity detected, wait
                     _delay_cycles(10);  // TODO: make exp backoff lookup table, convert to cycles based on clock freq
                 numAttempts++;
 
                 // for testing - print out results
-                if(channelStatus == 0x0100)
+                if(channelStatus & 0x0100)
                     printf("\r\nchannel activity detected, attempt %d", numAttempts);
                 else
                     printf("\r\nno channel activity detected, attempt %d", numAttempts);
@@ -151,7 +151,7 @@ void main(void){
             if(numAttempts > GIVEUP_MAC){
                 // calculate sleepTime
             }
-            if(channelStatus != 0x0100){ // no activity detected
+            if( !(channelStatus & 0x0100) ){ // no activity detected
                 //printf("\r\nabout to call Roamer_EstablishConnection");
                 status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
                 // TODO: within transmit data function:
