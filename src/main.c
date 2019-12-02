@@ -142,7 +142,6 @@ void main(void){
                 LORA_ClearIrqStatus(0x0180); // clear CadDone and CadDetected
                 numAttempts++;
                 if(channelStatus & 0x0100){ // if activity detected, wait
-                    printf("\r\n%d",backoffSec[numAttempts]);
                     delay_s(backoffSec[numAttempts]);
                 }
                 // for testing - print out results
@@ -155,7 +154,7 @@ void main(void){
 
             // proceed based on results of MAC checks
             if(numAttempts > GIVEUP_MAC){
-                // calculate sleepTime
+                // TODO: calculate sleepTime
                 printf("\r\ngave up, calculating sleepTime"); // for testing
             }
             if( !(channelStatus & 0x0100) ){ // no activity detected
@@ -171,7 +170,7 @@ void main(void){
                 sleepTime = 10; //min?
             }
 
-            // sleep amount sleepTime
+            // TODO: sleep amount sleepTime
         #endif
 
         #ifdef HOME_NODE
