@@ -21,8 +21,8 @@
  * TEST
  */
 
-//#define ROAMING_NODE
-#define HOME_NODE
+#define ROAMING_NODE
+//#define HOME_NODE
 //#define TEST
 
 void main(void){
@@ -124,7 +124,7 @@ void main(void){
 
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1FC0) >> 6);
-            data[1] = (uint8_t)(DEVICE_ID & 0x003F << 2);
+            data[1] = (uint8_t)((DEVICE_ID & 0x003F) << 2);
             //TODO: data[1] | first 2 bits of ADC readings
 
             // check for channel activity and repeat if activity detected
