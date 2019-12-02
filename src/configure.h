@@ -4,7 +4,7 @@
 /*
  * USER CONFIGURATIONS FOR DEVICE
  */
-#define DEVICE_ID           5                   // device ID, range: 0-8191
+#define DEVICE_ID           2                   // device ID, range: 0-8191
 
 /*
  * USER CONFIGURATIONS FOR LORA
