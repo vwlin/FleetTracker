@@ -82,10 +82,13 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
                 sendHello[1] = *startSeq;
                 sendHello[2] = (uint8_t) ((DEVICE_ID & 0xFF00) >> 8);
                 sendHello[3] = (uint8_t) (DEVICE_ID & 0x00FF);
-                LORA_TransmitAndWait(0x00, sendHello, 4, TIMEOUT_VALUE, IRQ_TXDONE);
+                irqStatus = LORA_TransmitAndWait(0x00, sendHello, 4, TIMEOUT_VALUE, IRQ_TXDONE|IRQ_TIMEOUT);
 
                 printf("\r\npinged");
-                nextState = WaitForGreeting;
+                if(irqStatus == IRQ_TIMEOUT)
+                    nextState = Ping;
+                else
+                    nextState = WaitForGreeting;
                 break;
 
             // Wait for client to respond with "Hello" greeting
