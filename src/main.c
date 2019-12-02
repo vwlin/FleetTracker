@@ -25,6 +25,10 @@
 //#define HOME_NODE
 //#define TEST
 
+
+// TODO: move to protocol.h file somehow
+uint16_t backoffSec[8] = {1, 2, 4, 8, 16, 32, 64, 128}; // exponential back-off lookup table for MAC protocol, for a = 2 seconds
+
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
 
@@ -136,10 +140,11 @@ void main(void){
                 while( !LORA_GetIrqStatus() ); // poll CadDone IRQ
                 channelStatus = LORA_GetIrqStatus(); // check CadDetected IRQ
                 LORA_ClearIrqStatus(0x0180); // clear CadDone and CadDetected
-                if(channelStatus & 0x0100) // if activity detected, wait
-                    _delay_cycles(10);  // TODO: make exp backoff lookup table, convert to cycles based on clock freq
                 numAttempts++;
-
+                if(channelStatus & 0x0100){ // if activity detected, wait
+                    printf("\r\n%d",backoffSec[numAttempts]);
+                    delay_s(backoffSec[numAttempts]);
+                }
                 // for testing - print out results
                 if(channelStatus & 0x0100)
                     printf("\r\nchannel activity detected, attempt %d", numAttempts);

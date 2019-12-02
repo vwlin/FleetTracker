@@ -22,3 +22,11 @@ void deconstructToArray(uint32_t value, uint8_t * array, uint8_t startIndex, uin
         array[i+startIndex] = (uint8_t)( (value & masks[length - i - 1]) >> (8*(length - i - 1)) );
     }
 }
+
+void delay_s(uint8_t delay){
+    uint8_t i;
+
+    for(i = 0; i < delay; i++){
+        _delay_cycles( (uint32_t)(UCS_MCLK_DESIRED_FREQUENCY_IN_KHZ)*(uint32_t)(1000));
+    }
+}

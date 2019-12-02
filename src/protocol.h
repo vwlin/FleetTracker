@@ -58,7 +58,6 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
 /*
  * DATA TRANSFER PROCEDURE
  */
-
 #define TIMEOUT_IN_SECONDS          .750
 #define TIMEOUT_VALUE               TIMEOUT_IN_SECONDS/.000015625
 #define GIVEUP                      4

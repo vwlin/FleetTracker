@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "clock.h"
+
 /*
  * reconstructTo32Bits
  * Reconstruct an array of bytes into a single 32-bit value, assuming MSB is stored in lowest index
@@ -27,5 +29,14 @@ uint32_t reconstructTo32Bits(uint8_t * array, uint8_t startIndex, uint8_t length
  *  length - number of indices to deconstruct into
  */
 void deconstructToArray(uint32_t value, uint8_t * array, uint8_t startIndex, uint8_t length);
+
+/*
+ * delay_s
+ * Wait by delay time, given in units of seconds
+ *
+ * Parameters:
+ *  delay - amount to delay by, in units of seconds
+ */
+void delay_s(uint8_t delay);
 
 #endif /* HELP_H_ */
