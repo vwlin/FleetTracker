@@ -63,7 +63,7 @@ void main(void){
     LORA_SetModulationParams(0, 0, 0, SPREADING_FACTOR, CODING_RATE, LDR_OPT_ENABLE, BANDWIDTH); // configurable in configure.h
     LORA_SetPacketParams(0, 0, 0, 0, 0, HEADER_MODE, IQ_MODE, PREAMBLE_LENGTH, PAYLOAD_LENGTH, CRC_ENABLE); // configurable in configure.h // todo figure out why TOTAL_PAYLOAD+1, +1 necessary?
     LORA_SetBufferBaseAddress(0x00, 0x00); // Use all 256 bytes for the current mode
-    LORA_SetCadParams(CAD_ON_8_SYMB, 25, 8, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
+    LORA_SetCadParams(CAD_ON_8_SYMB, 25, 6, CAD_ONLY, 0); // Perform CAD operation, then return to STBY_RC mode
 
     // Set LoRa Sync word MSB and LSB ?? needed? TODO: check if needed
     uint8_t regData[2] = {0x14, 0x24};

@@ -11,7 +11,7 @@ extern int errorCount; // data transfer
 uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
     uint8_t receivedHello[4] = {0};
     uint16_t deviceID;
-    uint8_t sendHello[1] = {0};
+    uint8_t sendHello[3] = {0};
     uint16_t irqStatus;
 
     HomeState currentState = Listen;
@@ -39,7 +39,9 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
             case Greet:
                 //printf("\r\nresponding to client");
                 sendHello[0] = PASSWORD;
-                LORA_TransmitAndWait(0x00, sendHello, 1, 0, IRQ_TXDONE);
+                sendHello[1] = receivedHello[2];
+                sendHello[2] = receivedHello[3];
+                LORA_TransmitAndWait(0x00, sendHello, 3, 0, IRQ_TXDONE);
 
                 nextState = Receive; // Continue with conversation
                 break;
@@ -57,9 +59,10 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 }
 
 uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
-    uint8_t receivedHello[1] = {0};
+    uint8_t receivedHello[3] = {0};
     uint8_t sendHello[4] = {0}; // PASSWORD, starting sequence number, device ID upper byte, device ID lower byte
     uint16_t irqStatus;
+    uint16_t deviceID;
 
     uint8_t flags[1] = {0};
     Flash_ReadArray(INFOA_START, flags, 1);
@@ -87,11 +90,12 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
             // Wait for client to respond with "Hello" greeting
             case WaitForGreeting:
                 //printf("\r\nwaiting for greeting");
-                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 1, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
+                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 3, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
+                deviceID = (receivedHello[1] << 8) + receivedHello[2];
 
                 // Greeting received with no errors and before timeout
                 if(irqStatus == IRQ_RXDONE){
-                    if(*receivedHello == PASSWORD)
+                    if( (receivedHello[0] == PASSWORD) && (deviceID == DEVICE_ID) ) // Check password and correct device ID
                         nextState = Transmit;
                     else
                         nextState = Ping; // Retransmit "Hello" ping
@@ -147,6 +151,9 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
         previousState = WaitACK0;
     }
 
+    uint8_t received[3] = {0};
+    uint16_t receivedID;
+
     // Prepare sequence values for writing into LoRa buffer
     uint8_t seq0 = 0;
     uint8_t seq1 = 1;
@@ -186,11 +193,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                 //if acknowledgment is received before timeout and no errors are found, move on and send 1
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
-                    uint8_t received[1] = {0};
-                    LORA_ReadBuffer(0x00, received, 1); //read ACK
-
-                    //verify ACK
-                    if ( (received[0] & 0x80 ) == (0x00) ){
+                    LORA_ReadBuffer(0x00, received, 3); //read ACK
+                    receivedID = (received[1] << 8) + received[2];
+                    //verify ACK and device ID
+                    if ( ((received[0] & 0x80 ) == 0x00) && (receivedID == DEVICE_ID) ){
 
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
@@ -264,9 +270,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
                     uint8_t received[1] = {0};
-                    LORA_ReadBuffer(0x00, received, 1); //read ACK
+                    LORA_ReadBuffer(0x00, received, 3); //read ACK
+                    receivedID = (received[1] << 8) + received[2];
                     //verify ACK
-                    if ( (received[0] & 0x80 ) == (0x80) ){
+                    if ( ((received[0] & 0x80 ) == 0x80) && (receivedID == DEVICE_ID) ){
                         //if (retransmitCount > maxRetransmit){
                         //    maxRetransmit = retransmitCount;
                         //}
@@ -339,6 +346,7 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t dev
     uint8_t info[2] = {0};
     uint8_t receivedSeqNum[1] = {0}; // for sequence number
     uint16_t receivedID; // for checking source of data
+    uint8_t returnACK[3] = {0};
 
     while (count <= totalPackets){
         // enable rxdone, header CRC, payload CRC, timeout IRQs
@@ -376,12 +384,17 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t dev
                 numErrors++;
             }
 
-            //send ACK whether repeat or not
-            LORA_WriteBuffer(0x00, receivedSeqNum , 0x01);
-            LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
-            LORA_SetTx(0x000000);
-            while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-            LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+            if(receivedID == deviceID){
+                //send ACK whether repeat or not
+                returnACK[0] = *receivedSeqNum;
+                returnACK[1] = (uint8_t) ((deviceID & 0xFF00) >> 8);
+                returnACK[2] = (uint8_t) (deviceID & 0x00FF);
+                LORA_WriteBuffer(0x00, returnACK , 3);
+                LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
+                LORA_SetTx(0x000000);
+                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
+                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+            }
         }
 
         if ( (LORA_GetIrqStatus() & IRQ_CRC_ERR ) || (LORA_GetIrqStatus() & IRQ_HEADER_ERR ) ){
