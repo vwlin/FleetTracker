@@ -95,9 +95,10 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq);
  *  data - pointer to array of 8 bit data to be received
  *  size - size of data to receive in bytes
  *  startSeq - starting sequence number for data transmission, 0 or 1
+ *  deviceID - ID of device sending data
  *
  * Return code: 1 if there was an error, 0 if it was received successfully
  */
-uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq);
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t deviceID);
 
 #endif /* NODE_H_ */

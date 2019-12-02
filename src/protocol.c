@@ -9,7 +9,8 @@ typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
 extern int errorCount; // data transfer
 
 uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
-    uint8_t receivedHello[2] = {0};
+    uint8_t receivedHello[4] = {0};
+    uint16_t deviceID;
     uint8_t sendHello[1] = {0};
     uint16_t irqStatus;
 
@@ -22,7 +23,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
             // Wait for client to send "Hello" ping
             case Listen:
                 //printf("\r\nlistening for a hello");
-                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 2, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
+                irqStatus = LORA_WaitForReceive(0x00, receivedHello, 4, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
 
                 // Ping received with no errors, and password is correct
                 if( (irqStatus == IRQ_RXDONE) && (receivedHello[0] == PASSWORD) ){
@@ -46,7 +47,8 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
             // Receive data
             case Receive:
                 //printf("\r\nabout to start receiving data");
-                return ReceiveData(data, size, receivedHello[1]);
+                deviceID = (receivedHello[2] << 8) + receivedHello[3];
+                return ReceiveData(data, size, receivedHello[1], deviceID);
                 // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
                 // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
@@ -56,7 +58,7 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 
 uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * startSeq){
     uint8_t receivedHello[1] = {0};
-    uint8_t sendHello[2] = {0}; // PASSWORD, starting sequence number
+    uint8_t sendHello[4] = {0}; // PASSWORD, starting sequence number, device ID upper byte, device ID lower byte
     uint16_t irqStatus;
 
     uint8_t flags[1] = {0};
@@ -75,7 +77,9 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
                 //printf("\r\npinging");
                 sendHello[0] = PASSWORD;
                 sendHello[1] = *startSeq;
-                LORA_TransmitAndWait(0x00, sendHello, 2, 0, IRQ_TXDONE);
+                sendHello[2] = (uint8_t) ((DEVICE_ID & 0xFF00) >> 8);
+                sendHello[3] = (uint8_t) (DEVICE_ID & 0x00FF);
+                LORA_TransmitAndWait(0x00, sendHello, 4, 0, IRQ_TXDONE);
 
                 nextState = WaitForGreeting;
                 break;
@@ -319,7 +323,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     return 0;
 }
 
-uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
+uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t deviceID){
     int totalPackets = 1; //delete later
 
     int count = 1;
@@ -332,7 +336,9 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
     else
         previousSeqNum = 0x00; // sequence number 0, shifted left 7 (assuming first sequence number is 1)
 
-    uint8_t byteOne[1] = {0}; // for sequence number
+    uint8_t info[2] = {0};
+    uint8_t receivedSeqNum[1] = {0}; // for sequence number
+    uint16_t receivedID; // for checking source of data
 
     while (count <= totalPackets){
         // enable rxdone, header CRC, payload CRC, timeout IRQs
@@ -351,16 +357,17 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
             //printf("\r\nreceived, no timeout, no errors");
             LORA_ClearIrqStatus(0x0262);
 
-            //get sequence number and check if it is the expected value
-            LORA_ReadBuffer(0x00, byteOne, 1);
-            byteOne[0] &= 0x80; // parse out sequence number
+            //get sequence number and received device ID
+            LORA_ReadBuffer(0x00, info, 2);
+            *receivedSeqNum = info[0] & 0x80; // parse out sequence number
+            receivedID = ((info[0] & 0x7F) << 6) + ((info[1] & 0xFC) >> 2); // parse out received device ID
 
-            // If not a repeat, put the packet in the file
-            if ( byteOne[0] != previousSeqNum){
+            // If not a repeat and received from the correct source, save the data
+            if ( (*receivedSeqNum != previousSeqNum) && (receivedID == deviceID)){
                 //printf("\r\nnot a repeat");
                 //read the buffer
                 LORA_ReadBuffer(0x00, data, size);
-                previousSeqNum = byteOne[0]; // parse out sequence number
+                previousSeqNum = *receivedSeqNum; // parse out sequence number
 
                 count++;
             }
@@ -370,7 +377,7 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq){
             }
 
             //send ACK whether repeat or not
-            LORA_WriteBuffer(0x00, byteOne , 0x01);
+            LORA_WriteBuffer(0x00, receivedSeqNum , 0x01);
             LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
             LORA_SetTx(0x000000);
             while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone

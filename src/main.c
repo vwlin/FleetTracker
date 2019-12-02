@@ -21,8 +21,8 @@
  * TEST
  */
 
-#define ROAMING_NODE
-//#define HOME_NODE
+//#define ROAMING_NODE
+#define HOME_NODE
 //#define TEST
 
 void main(void){
@@ -123,8 +123,9 @@ void main(void){
             printf("\r\n");
 
             // fill payload, leaving first bit empty for sequence number
-            data[0] = (uint8_t)((DEVICE_ID & 0x1F00) >> 8);
-            data[1] = (uint8_t)(DEVICE_ID & 0x00FF);
+            data[0] = (uint8_t)((DEVICE_ID & 0x1FC0) >> 6);
+            data[1] = (uint8_t)(DEVICE_ID & 0x003F << 2);
+            //TODO: data[1] | first 2 bits of ADC readings
 
             // check for channel activity and repeat if activity detected
             numAttempts = 0;
@@ -150,9 +151,10 @@ void main(void){
             // proceed based on results of MAC checks
             if(numAttempts > GIVEUP_MAC){
                 // calculate sleepTime
+                printf("\r\ngave up, calculating sleepTime"); // for testing
             }
             if( !(channelStatus & 0x0100) ){ // no activity detected
-                //printf("\r\nabout to call Roamer_EstablishConnection");
+                printf("\r\nabout to call Roamer_EstablishConnection");
                 status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
                 // TODO: within transmit data function:
                     // implement roaming node sub-block flow diagram
@@ -174,7 +176,7 @@ void main(void){
             //printf("\r\nabout to call Home_WaitForConnection");
             status = Home_WaitForConnection(data, PAYLOAD_LENGTH);
 
-            deviceID = ( (data[0] & 0x1F ) << 8) | data[1];
+            deviceID = ((data[0] & 0x7F) << 6) + ((data[1] & 0xFC) >> 2);
 
             // print data to terminal TODO: send to a pc instead
             printf("\r\nReceived from device %d:\r\n", deviceID);
