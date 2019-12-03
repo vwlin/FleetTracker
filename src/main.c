@@ -5,14 +5,11 @@
 #include <stdint.h>
 
 #include "SPI.h"
-#include "LORA.h"
-#include "test.h"
-#include "protocol.h"
 #include "UART.h"
-#include "help.h"
 #include "LED.h"
 #include "clock.h"
 #include "configure.h"
+#include "gps.h"
 
 /* CHOOSE ONE
  *
@@ -25,18 +22,33 @@
 //#define HOME_NODE
 //#define TEST
 
-
 // TODO: move to protocol.h file somehow
 uint16_t backoffSec[8] = {1, 2, 4, 8, 16, 32, 64, 128}; // exponential back-off lookup table for MAC protocol, for a = 2 seconds
+
+volatile unsigned int year, month, day, hour, min, sec;
+volatile long latitude, longitude;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
 
     Configure_Clock();
-    //Configure_LED();
     Configure_UART();
     Configure_SPI_LORA();
     Configure_LORA();
+
+    #ifdef ROAMING_NODE
+    Configure_SPI_GPS();
+    configureGPS();
+    #endif
+
+    unsigned char configPacket[28];
+    unsigned char navPacket[8];
+    ublox_configure_spi_port(configPacket);
+    configure_ublox_poll(navPacket, 0x01, 0x07);
+    unsigned char ublox_input_buffer[100];
+    unsigned char payload[92];
+    unsigned char finalPayload[78];
+    int i;
 
     #ifdef TEST
     volatile uint8_t passLORA = testLORA();
@@ -115,8 +127,38 @@ void main(void){
     while(1){
         //printf("\r\nentering while loop");
         #ifdef ROAMING_NODE
-            // TODO: swap out following lines for code that fills data (length DATA_PAYLOAD_LENGTH)
-            // with device ID, ADC readings, and GPS data
+            // fill variables from payload
+            for(i = 0; i<92; i++){
+                payload[i] = ublox_input_buffer[i + 6];
+            }
+            year = (int)(payload[4]) + (int)(payload[5] << 8);
+            month = (int)payload[6];
+            day = (int)payload[7];
+            hour = (int)payload[8] - 5; //subtract 5 to get our local time
+            min = (int)payload[9];
+            sec = (int)payload[10];
+            longitude = ((long) payload[27]) << 24 | ((long) payload[26]) << 16 |
+                    ((long) payload[25]) << 8 | (long) (payload[24]);
+            latitude = ((long) payload[31]) << 24 | ((long) payload[30]) << 16 |
+                            ((long) payload[29]) << 8 | (long) (payload[28]);
+
+
+            //clear input buffer
+            for(i = 0; i<100; i++){
+                ublox_input_buffer[i] = 0;
+            }
+
+            SPI_SendPacket_GPS(configPacket, 28);
+            while(ublox_input_buffer[0] == 0) {
+                SPI_ReceivePacket_GPS(ublox_input_buffer,100);
+            }
+            while((ublox_input_buffer[0] != 0xb5)){
+                SPI_SendPacket_GPS(navPacket,8);
+                for(i = 0; i<100; i++) ublox_input_buffer[i]=0;
+                while(ublox_input_buffer[0] == 0) {
+                    SPI_ReceivePacket_GPS(ublox_input_buffer,100);
+               }
+            }
 
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 data[i] = 0;
@@ -196,9 +238,5 @@ void main(void){
             }
             printf("\r\n");
         #endif
-
-        //printf("\r\n%d", status);
-        if(status)
-            printf("\r\nData transfer Failed\r\n");
     }
 }
