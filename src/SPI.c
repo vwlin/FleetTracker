@@ -67,7 +67,7 @@ void Configure_SPI_GPS(){
 
     // UCB0 configuration
     SET_UCB0_MASTER_MODE;
-    SET_UCB0_PIN_MODE;
+    //SET_UCB0_PIN_MODE;
     SET_UCB0_CHAR_LENGTH;
     SET_UCB0_SYNC_MODE;
     SET_UCB0_CLK_PHASE;

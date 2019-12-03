@@ -160,6 +160,7 @@ void main(void){
             printf("\r\n");
             */
 
+            /*
             year = (uint8_t) 0xFF;
             month = (uint8_t) 0x55;
             day = (uint8_t) 0xAA;
@@ -168,6 +169,7 @@ void main(void){
             sec = (uint8_t) 0xAA;
             longitude = (int32_t) 0xFFFFFFFF;
             latitude = (int32_t) 0x55555555;
+            */
 
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1FC0) >> 6);
@@ -180,11 +182,11 @@ void main(void){
             data[8] = (uint8_t)((longitude & 0xFF000000) >> 24);
             data[9] = (uint8_t)((longitude & 0x00FF0000) >> 16);
             data[10] = (uint8_t)((longitude & 0x0000FF00) >> 8);
-            data[11] = (uint8_t)((longitude & 0x000000C0) >> 6); // in python, read longitude values and shift left 6
+            data[11] = (uint8_t)(longitude & 0x000000C0); // in python, read longitude values and shift left 6
             data[11] |= (uint8_t)((day & 0x1F) << 1);
             data[11] |= (uint8_t)((month & 0x08) >> 3);
             data[12] = (uint8_t)((month & 0x07) << 5);
-            data[12] |= (uint8_t)((hour & 0x1F));
+            data[12] |= (uint8_t)(hour & 0x1F);
             data[13] = (uint8_t)((min & 0x3F) << 2);
             data[13] |= (uint8_t)((sec & 0x30) >> 4);
             data[14] = (uint8_t)((sec & 0x0F) << 4);
