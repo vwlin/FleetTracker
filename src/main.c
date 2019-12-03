@@ -21,9 +21,8 @@
 //#define HOME_NODE
 //#define TEST
 
-volatile unsigned char payload[92];
-unsigned int year, month, day, hour, min, sec;
-long latitude, longitude;
+volatile unsigned int year, month, day, hour, min, sec;
+volatile long latitude, longitude;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -32,20 +31,17 @@ void main(void){
     Configure_UART();
     Configure_SPI_GPS();
     configureGPS();
+
     unsigned char configPacket[28];
     unsigned char navPacket[8];
-    //unsigned char tpPacket[8];
     ublox_configure_spi_port(configPacket);
     configure_ublox_poll(navPacket, 0x01, 0x07);
     unsigned char ublox_input_buffer[100];
+    unsigned char payload[92];
+    unsigned char finalPayload[78];
     int i;
 
-
-
-
     while(1){
-
-
 
         //debugging
         for(i = 0; i<92; i++){
@@ -79,7 +75,5 @@ void main(void){
                 SPI_ReceivePacket_GPS(ublox_input_buffer,100);
            }
         }
-        printf("hello\r\n");
     }
-
 }

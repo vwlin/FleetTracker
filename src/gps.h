@@ -8,10 +8,10 @@
 #define SAFEBOOT_SELECT              P6SEL
 #define SAFEBOOT_OUTPUT              P6OUT
 
-#define GPS_CS_DIRECTION             P2DIR
-#define GPS_CS_PIN                   BIT2
-#define GPS_CS_SELECT                P2SEL
-#define GPS_CS_OUTPUT                P2OUT
+#define GPS_CS_DIRECTION             P1DIR
+#define GPS_CS_PIN                   BIT0
+#define GPS_CS_SELECT                P1SEL
+#define GPS_CS_OUTPUT                P1OUT
 
 #define SET_SAFEBOOT_AS_GPIO         SAFEBOOT_SELECT &= ~SAFEBOOT_PIN
 #define SET_SAFEBOOT_AS_OUTPUT       SAFEBOOT_DIRECTION |= SAFEBOOT_PIN
