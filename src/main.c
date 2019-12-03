@@ -5,7 +5,11 @@
 #include <stdint.h>
 
 #include "SPI.h"
+#include "LORA.h"
+#include "test.h"
+#include "protocol.h"
 #include "UART.h"
+#include "help.h"
 #include "LED.h"
 #include "clock.h"
 #include "configure.h"
@@ -97,20 +101,6 @@ void main(void){
     }
     #endif
 
-
-    // @ note for vivian, please don't delete
-    // end goal:
-        // sequence number 1 bit
-        // device ID 13 bites
-        // ADC readings 24 bits
-        // gps DATA 74 bits
-        // unused 8 bits
-    // currently:
-        // sequence number 1 bit   // TODO: make 1 bit - will need to reconstruct inside of protocol.c functions then index to 0 buffer instead of just indexing to 0 (for seq no) then 1 (for data)
-        // unused 2 bits
-        // device ID 13 bits
-        // character data  13 bytes (needs to be full bytes bc characters)
-    uint8_t i;
     uint8_t data[PAYLOAD_LENGTH] = {0};
     uint8_t status = 0;
 
@@ -169,6 +159,15 @@ void main(void){
             reads(data, PAYLOAD_LENGTH, 2);
             printf("\r\n");
             */
+
+            year = (uint8_t) 0xFF;
+            month = (uint8_t) 0x55;
+            day = (uint8_t) 0xAA;
+            hour = (uint8_t) 0xFF;
+            min = (uint8_t) 0x55;
+            sec = (uint8_t) 0xAA;
+            longitude = (int32_t) 0xFFFFFFFF;
+            latitude = (int32_t) 0x55555555;
 
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1FC0) >> 6);
