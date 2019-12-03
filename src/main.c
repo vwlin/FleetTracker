@@ -25,8 +25,8 @@
 // TODO: move to protocol.h file somehow
 uint16_t backoffSec[8] = {1, 2, 4, 8, 16, 32, 64, 128}; // exponential back-off lookup table for MAC protocol, for a = 2 seconds
 
-volatile unsigned int year, month, day, hour, min, sec;
-volatile long latitude, longitude;
+volatile uint8_t year, month, day, hour, min, sec;
+volatile int32_t latitude, longitude;
 
 void main(void){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
@@ -131,16 +131,16 @@ void main(void){
             for(i = 0; i<92; i++){
                 payload[i] = ublox_input_buffer[i + 6];
             }
-            year = (int)(payload[4]) + (int)(payload[5] << 8);
-            month = (int)payload[6];
-            day = (int)payload[7];
-            hour = (int)payload[8] - 5; //subtract 5 to get our local time
-            min = (int)payload[9];
-            sec = (int)payload[10];
-            longitude = ((long) payload[27]) << 24 | ((long) payload[26]) << 16 |
-                    ((long) payload[25]) << 8 | (long) (payload[24]);
-            latitude = ((long) payload[31]) << 24 | ((long) payload[30]) << 16 |
-                            ((long) payload[29]) << 8 | (long) (payload[28]);
+            year = (uint8_t)(payload[4]) + (uint8_t)(payload[5] << 8);
+            month = (uint8_t)payload[6];
+            day = (uint8_t)payload[7];
+            hour = (uint8_t)payload[8] - 5; //subtract 5 to get our local time
+            min = (uint8_t)payload[9];
+            sec = (uint8_t)payload[10];
+            longitude = ((int32_t) payload[27]) << 24 | ((int32_t) payload[26]) << 16 |
+                    ((int32_t) payload[25]) << 8 | (int32_t) (payload[24]);
+            latitude = ((int32_t) payload[31]) << 24 | ((int32_t) payload[30]) << 16 |
+                            ((int32_t) payload[29]) << 8 | (int32_t) (payload[28]);
 
 
             //clear input buffer
@@ -160,18 +160,35 @@ void main(void){
                }
             }
 
+            // fill empty locations with zeros
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 data[i] = 0;
             }
-
+            /*
             printf("\r\nEnter up to %d characters you want to send, then press enter:\r\n", PAYLOAD_LENGTH-2);
             reads(data, PAYLOAD_LENGTH, 2);
             printf("\r\n");
+            */
 
             // fill payload, leaving first bit empty for sequence number
             data[0] = (uint8_t)((DEVICE_ID & 0x1FC0) >> 6);
             data[1] = (uint8_t)((DEVICE_ID & 0x003F) << 2);
             //TODO: data[1] | first 2 bits of ADC readings
+            data[4] = (uint8_t)((latitude & 0xC0000000) >> 30); // or with end of ADC readings
+            data[5] = (uint8_t)((latitude & 0x3FC00000) >> 22);
+            data[6] = (uint8_t)((latitude & 0x003FC000) >> 14);
+            data[7] = (uint8_t)((latitude & 0x00003FC0) >> 6);  // in python, read latitude values and shift left 6
+            data[8] = (uint8_t)((longitude & 0xFF000000) >> 24);
+            data[9] = (uint8_t)((longitude & 0x00FF0000) >> 16);
+            data[10] = (uint8_t)((longitude & 0x0000FF00) >> 8);
+            data[11] = (uint8_t)((longitude & 0x000000C0) >> 6); // in python, read longitude values and shift left 6
+            data[11] |= (uint8_t)((day & 0x1F) << 1);
+            data[11] |= (uint8_t)((month & 0x08) >> 3);
+            data[12] = (uint8_t)((month & 0x07) << 5);
+            data[12] |= (uint8_t)((hour & 0x1F));
+            data[13] = (uint8_t)((min & 0x3F) << 2);
+            data[13] |= (uint8_t)((sec & 0x30) >> 4);
+            data[14] = (uint8_t)((sec & 0x0F) << 4);
 
             // check for channel activity and repeat if activity detected
             numAttempts = 0;
