@@ -110,7 +110,7 @@ void main(void){
     uint8_t numAttempts;
 
     // duty cycling related variables
-    uint8_t sleepTime = 0; //TODO: TYPE? units?
+    uint8_t sleepTime; // seconds
 
     while(1){
         //printf("\r\nentering while loop");
@@ -154,7 +154,7 @@ void main(void){
 
             // proceed based on results of MAC checks
             if(numAttempts > GIVEUP_MAC){
-                // TODO: calculate sleepTime
+                sleepTime = 15; // seconds - LATER: calculate dynamically?
                 printf("\r\ngave up, calculating sleepTime"); // for testing
             }
             if( !(channelStatus & 0x0100) ){ // no activity detected
@@ -167,10 +167,15 @@ void main(void){
                     // make the decisions based on what was passed into the function?
                     // based on results, update the pointer from within the function
                     // update status accordingly (add a third status result - success, failure and retransmit, failure and giveup
-                sleepTime = 10; //min?
+                sleepTime = 15; // seconds
             }
 
-            // TODO: sleep amount sleepTime
+            // TODO
+            // sleep for sleepTime seconds
+            // enter LPM1 with SCLK on (SMCLKOFF = 0): ACLK and SCLK on, GPIO unchanged
+            //ENABLE_TIMER_INTERRUPT; // enable timer for exiting sleep mode
+            //__bis_SR_register(LPM1_bits + GIE); // keeps interrupts enabled, SMCLKOFF already set to 0
+            //DISABLE_TIMER_INTERRUPT;
         #endif
 
         #ifdef HOME_NODE
