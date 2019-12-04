@@ -104,6 +104,9 @@ void main(void){
     uint8_t data[PAYLOAD_LENGTH] = {0};
     uint8_t status = 0;
 
+    // to delete - for testing only
+    uint8_t strbuf[3];
+
     // RDT protocol related variables
     uint8_t seqNumber[1] = {0}; // start with a sequence number of 0
 
@@ -191,6 +194,13 @@ void main(void){
             data[13] |= (uint8_t)((sec & 0x30) >> 4);
             data[14] = (uint8_t)((sec & 0x0F) << 4);
 
+            printf("\r\n");
+            for(i = 0; i < PAYLOAD_LENGTH; i++){
+                //if(i >= 2)
+                printf("%d", data[i]);
+                //sprintf(strbuf, "%d", data[i]);
+            }
+
             // check for channel activity and repeat if activity detected
             numAttempts = 0;
             channelStatus = 0x0180;
@@ -247,14 +257,20 @@ void main(void){
 
             deviceID = ((data[0] & 0x7F) << 6) + ((data[1] & 0xFC) >> 2);
 
+            // to delete - for testing only
+            data[0] &= ~0x80;
+
             // print data to terminal TODO: send to a pc instead
             printf("\r\nReceived from device %d:\r\n", deviceID);
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 //if(i >= 2)
-                printf("%d", data[i]);
-                data[i] = 0;
+                printf("%x", data[i]);
+                //data[i] = 0;
             }
             printf("\r\n");
         #endif
+
+        if(status)
+            printf("\r\nData transfer Failed\r\n");
     }
 }
