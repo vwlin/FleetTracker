@@ -22,8 +22,8 @@
  * TEST
  */
 
-//#define ROAMING_NODE
-#define HOME_NODE
+#define ROAMING_NODE
+//#define HOME_NODE
 //#define TEST
 
 // TODO: move to protocol.h file somehow
@@ -197,7 +197,7 @@ void main(void){
             printf("\r\n");
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 //if(i >= 2)
-                printf("%d", data[i]);
+                printf("%x", data[i]);
                 //sprintf(strbuf, "%d", data[i]);
             }
 
