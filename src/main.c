@@ -22,8 +22,8 @@
  * TEST
  */
 
-//#define ROAMING_NODE
-#define HOME_NODE
+#define ROAMING_NODE
+//#define HOME_NODE
 //#define TEST
 
 // TODO: move to protocol.h file somehow
@@ -194,10 +194,11 @@ void main(void){
             data[13] |= (uint8_t)((sec & 0x30) >> 4);
             data[14] = (uint8_t)((sec & 0x0F) << 4);
 
-            printf("\r\n");
+            printf("\r\nDevice %d", DEVICE_ID);
+            printf("\r\nPayload: ");
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 //if(i >= 2)
-                printf("%x", data[i]);
+                printf("%x ", data[i]);
                 //sprintf(strbuf, "%d", data[i]);
             }
 
@@ -216,19 +217,21 @@ void main(void){
                 }
                 // for testing - print out results
                 if(channelStatus & 0x0100)
-                    printf("\r\nchannel activity detected, attempt %d", numAttempts);
+                    printf("\r\nChannel activity detected, attempt %d", numAttempts);
                 else
-                    printf("\r\nno channel activity detected, attempt %d", numAttempts);
+                    printf("\r\nNo channel activity detected, attempt %d", numAttempts);
             }
-            printf("\r\nexited MAC loop"); // for testing
+            //printf("\r\nexited MAC loop"); // for testing
 
             // proceed based on results of MAC checks
             if(numAttempts > GIVEUP_MAC){
                 sleepTime = 15; // seconds - LATER: calculate dynamically?
-                printf("\r\ngave up, calculating sleepTime"); // for testing
+                //printf("\r\ngave up, calculating sleepTime"); // for testing
+                printf("\r\nGave up");
             }
-            if( !(channelStatus & 0x0100) ){ // no activity detected
-                printf("\r\nabout to call Roamer_EstablishConnection");
+            else if( !(channelStatus & 0x0100) ){ // no activity detected
+                //printf("\r\nabout to call Roamer_EstablishConnection");
+                printf("\r\nSending data");
                 status = Roamer_EstablishConnection(data, PAYLOAD_LENGTH, seqNumber);
                 // TODO: within transmit data function:
                     // implement roaming node sub-block flow diagram
@@ -246,6 +249,7 @@ void main(void){
             //ENABLE_TIMER_INTERRUPT; // enable timer for exiting sleep mode
             //__bis_SR_register(LPM1_bits + GIE); // keeps interrupts enabled, SMCLKOFF already set to 0
             //DISABLE_TIMER_INTERRUPT;
+            _delay_cycles(1000000);
         #endif
 
         #ifdef HOME_NODE
@@ -271,6 +275,8 @@ void main(void){
         #endif
 
         if(status)
-            printf("\r\nData transfer Failed\r\n");
+            printf("\r\nData transfer failed\r\n");
+        else
+            printf("\r\nData transfer success!\r\n");
     }
 }
