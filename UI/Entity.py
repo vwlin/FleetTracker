@@ -15,8 +15,8 @@ class Entity:
         self.points = []
         self.points.append(payload.coord)
         self.timestamps = []
-        self.timestamps.append(payload.getTimeStr())
+        self.timestamps.append(payload.getCallout())
 
     def addPoint(self,payload):
         self.points.append(payload.coord)
-        self.timestamps.append(payload.getTimeStr())
+        self.timestamps.append(payload.getCallout())

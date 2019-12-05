@@ -21,28 +21,21 @@ class Map:
     def add_point(self,payload):
         #self.fleet.printFleet()
         point = (payload.lat,payload.lon)
-        timestamp = payload.getTimeStr()
+        callout = payload.getCallout()
         self.fleet.processPayload(payload)
         #redraw map
-        my_map = folium.Map(location=[38.055148, -78.569812], zoom_start=12)
+        my_map = folium.Map(location=[38.033129, -78.509628], zoom_start=30)
         #add markers
         for entity in self.fleet.getEntities():
             # add all markers but the last one
             for i in range(len(entity.points)):
                 pt = entity.points[i]
                 ts = entity.timestamps[i]
-                if (i < len(entity.points)-1):
-                    marker = folium.Marker(
-                        location = [pt[0], pt[1]],
-                        #icon=folium.Icon(color='lightgray'),
-                        popup = ts
-                    )
-                    #marker.add_to(my_map)
-                else:
+                if (i >= len(entity.points)-1):
                     marker = folium.Marker(
                         location=[pt[0], pt[1]],
                         icon=CustomIcon('bus.png',icon_size=(50, 50),popup_anchor=(0,-10)),
-                        popup=timestamp
+                        popup=ts
                     )#.add_to(my_map)
                     my_map.add_child(marker)
             #add lines
@@ -61,5 +54,5 @@ class Map:
         # display map
         my_map.save('index.html')
         self.driver.get("file:///"+self.dirpath+"/index.html")
-        plt.pause(0.5)
+        #plt.pause(0.5)
 

@@ -19,8 +19,28 @@
 #
 ##############################################
 
-def nums_to_coord(sign, whole, dec):
-    return ((-1)**sign)*float(whole+dec)
+def str_to_coord(data_str):
+    # convert string to number
+    data_str = data_str + '000000'          # bit shift 6 to the left
+    coord = 0
+    exp = 0
+    negative = False
+    # if negative perform two's complement
+    neg_str = ''
+    if data_str[0] == '1':
+        negative = True
+        for i in range(len(data_str)):
+            if data_str[i] == '1': neg_str = neg_str + '0'
+            if data_str[i] == '0': neg_str = neg_str + '1'
+        data_str = neg_str
+    
+    for i in reversed(data_str):
+        if i == '1':
+            coord = coord + 2**exp;
+        exp  = exp + 1
+    if negative: coord = (-1)*(coord + 1)
+    result = float(coord) * 10**-7          # multiply result by 10^-7
+    return result
 
 def bin2frac(bin):
     frac = 0;
@@ -41,26 +61,30 @@ class Payload:
 
         # GPS data                        74 bits: 
         #   Latitude
-        self.lat_sign = int(data[38:39],2)    # 1 bit
-        self.lat_whol = int(data[39:47],2)    # 8 bits
-        self.lat_decl = bin2frac(data[47:64]) # 17 bits
-        self.lat = nums_to_coord(self.lat_sign,self.lat_whol,self.lat_decl)
+        self.lat = str_to_coord(data[38:64])  # 26 bits
 
         #   Longitude
-        self.lon_sign = int(data[64:65],2)    # 1 bit
-        self.lon_whol = int(data[65:73],2)    # 8 bits
-        self.lon_decl = bin2frac(data[73:90]) # 17 bits
-        self.lon = nums_to_coord(self.lon_sign,self.lon_whol,self.lon_decl)
+        #print(data[64:90])
+        self.lon = str_to_coord(data[64:90])  # 26 bits
         self.coord = (self.lat,self.lon)
         
         #   Timestamp
         self.day = int(data[90:95],2)         # 5 bits
-        self.hrs = int(data[95:100],2)        # 5 bits
-        self.min = int(data[100:106],2)       # 6 bits
-        self.sec = int(data[106:112],2)       # 6 bits
+        #print(self.day)
+        self.mon = int(data[95:99],2)         # 4 bits
+        #print(self.mon)
+        #print(data[99:104])
+        self.hrs = int(data[99:104],2)        # 5 bits
+        #print(self.hrs)
+        self.min = int(data[104:110],2)       # 6 bits
+        #print(self.min)
+        self.sec = int(data[110:116],2)       # 6 bits
+        #print(self.sec)
+        
+        # self.unused = int(data[116:120],2)    # 4 bits
     
-    def getTimeStr(self):
-        return str(self.hrs)+':'+str(self.min)+':'+str(self.sec)
+    def getCallout(self):
+        return 'Device #'+str(self.devID)+'\nDate: '+str(self.mon)+'/'+str(self.day)+'\nTime: '+str(self.hrs)+':'+str(self.min)+':'+str(self.sec)
         
     def getLatLonStr(self):
         return str(self.lat)+', '+str(self.lon)

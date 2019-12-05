@@ -22,8 +22,8 @@
  * TEST
  */
 
-#define ROAMING_NODE
-//#define HOME_NODE
+//#define ROAMING_NODE
+#define HOME_NODE
 //#define TEST
 
 // TODO: move to protocol.h file somehow
@@ -261,10 +261,10 @@ void main(void){
             data[0] &= ~0x80;
 
             // print data to terminal TODO: send to a pc instead
-            printf("\r\nReceived from device %d:\r\n", deviceID);
+            //printf("\r\nReceived from device %d:\r\n", deviceID);
             for(i = 0; i < PAYLOAD_LENGTH; i++){
                 //if(i >= 2)
-                printf("%x", data[i]);
+                printf("%x ", data[i]);
                 //data[i] = 0;
             }
             printf("\r\n");
