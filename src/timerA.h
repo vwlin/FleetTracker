@@ -4,7 +4,8 @@
 #include <msp430.h>
 #include <stdint.h>
 
-#define CCR_VAL                     14999999        // Interrupt period = (CCR_VAL + 1)/(f_CLK) = 15 s
+#define CCR_VAL                     999        // Interrupt period = (CCR_VAL + 1)/(f_CLK) = 1 ms
+#define SLEEP_TIME                  5 //15          // seconds
 
 #define DISABLE_TIMER_INTERRUPT     TA1CCTL0 &= ~CCIE
 #define ENABLE_TIMER_INTERRUPT      TA1CCTL0 |= CCIE

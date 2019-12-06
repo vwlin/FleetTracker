@@ -1,7 +1,7 @@
 #include "timerA.h"
 
-uint8_t g25ms = 0;
-uint8_t g250ms = 0;
+uint16_t g1ms = 0;
+uint16_t g1s = 0;
 
 void Configure_TimerA(){
     // Stop and clear the timer
@@ -11,7 +11,7 @@ void Configure_TimerA(){
     TA1CCR0 = CCR_VAL;
 
     // Start the timer in UP mode (counting to TA1CCR0) with SMCLK source, divided by 8
-    TA1CTL |= (TASSEL_2 | ID_3 | MC_1);
+    TA1CTL |= (TASSEL_2 | ID_0 | MC_1);
 
     // Disable CCR0 interrupt
     DISABLE_TIMER_INTERRUPT;
@@ -21,5 +21,15 @@ void Configure_TimerA(){
 #pragma vector = TIMER1_A0_VECTOR
 // Timer A interrupt service routine, runs every 15 s (at 1 MHz)
 __interrupt void TimerA1_routine(void){
-    __bic_SR_register_on_exit (LPM1_bits); // exit LPM1
+    g1ms++;
+
+    if(g1ms == 1000){
+        g1s++;
+        g1ms = 0;
+    }
+
+    if(g1s == SLEEP_TIME){
+        __bic_SR_register_on_exit (LPM1_bits); // exit LPM1
+        g1s = 0;
+    }
 }
