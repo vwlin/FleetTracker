@@ -1140,6 +1140,8 @@ void LORA_Reset(){
 uint16_t LORA_TransmitAndWait(uint8_t offset, uint8_t * data, uint8_t size, uint32_t timeout, uint16_t IRQMask){
     uint16_t irqContents;
 
+    LORA_ImproveSensitivity();
+
     LORA_WriteBuffer(offset, data, size);
     LORA_SetDioIrqParams(IRQMask, 0x0000, 0x0000, 0x0000);
     LORA_SetTx(timeout);
@@ -1180,4 +1182,21 @@ void LORA_ResetTimeoutCounter(){
     LORA_ReadRegister(0x0944, regData, 1);
     regData[0] |= 0x02;
     LORA_WriteRegister(0x0944, regData, 1);
+}
+
+void LORA_ImproveSensitivity(){
+    uint8_t regData[1] = {0x00};
+
+    if(PACKET_TYPE == PACKET_TYPE_LORA){
+        if(BANDWIDTH == LORA_BW_500){
+            LORA_ReadRegister(0x0889, regData, 1);
+            regData[0] &= ~0x04;
+            LORA_WriteRegister(0x0889, regData, 1);
+        }
+    }
+    else{
+        LORA_ReadRegister(0x0889, regData, 1);
+        regData[0] |= 0x04;
+        LORA_WriteRegister(0x0889, regData, 1);
+    }
 }

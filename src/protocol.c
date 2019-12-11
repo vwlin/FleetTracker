@@ -171,6 +171,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
             case Send0:
                 //printf("\r\nin Send0");
 
+                LORA_ImproveSensitivity();
+
                 data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
                 LORA_WriteBuffer(0x00, data, size); // write whole packet to buffer
                 //enable txdone and timeout IRQs
@@ -217,6 +219,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                             //printf("\r\nACK 0 with incorrect DEV ID received");
                             retransmitCount++;
                             if (retransmitCount < GIVEUP_TRANSMIT){
+                                LORA_ImproveSensitivity();
+
                                 //determine current frame based on count and re-send it
                                 data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
                                 LORA_WriteBuffer(0x00, data, size);
@@ -244,6 +248,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                         //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
+                        LORA_ImproveSensitivity();
+
                         //determine current frame based on count and re-send it
                         data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
                         LORA_WriteBuffer(0x00, data, size);
@@ -263,6 +269,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
             //Send the even numbered packets (with sequence bit 1)
             case Send1:
                 //printf("\r\nin Send1");
+                LORA_ImproveSensitivity();
+
                 //write sequence number
                 data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
                 LORA_WriteBuffer(0x00, data, size);
@@ -309,6 +317,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                             //printf("\r\nACK 1 with incorrect dev ID received");
                             retransmitCount++;
                             if (retransmitCount < GIVEUP_TRANSMIT){
+                                LORA_ImproveSensitivity();
+
                                 //determine current frame based on count and re-send it
                                 data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
                                 LORA_WriteBuffer(0x00, data, size);
@@ -335,6 +345,8 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                         //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
+                        LORA_ImproveSensitivity();
+
                         //determine current frame based on count and re-send it
                         data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
                         LORA_WriteBuffer(0x00, data, size);
@@ -422,6 +434,8 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t dev
             }
 
             if(receivedID == deviceID){
+                LORA_ImproveSensitivity();
+
                 //send ACK whether repeat or not
                 returnACK[0] = *receivedSeqNum;
                 returnACK[1] = (uint8_t) ((deviceID & 0xFF00) >> 8);

@@ -73,7 +73,7 @@ void main(void){
 
     // Configure communications
     LORA_SetStandby(STDBY_RC);
-    LORA_SetPacketType(PACKET_TYPE_LORA);
+    LORA_SetPacketType(PACKET_TYPE);
     LORA_SetRfFrequency(CENTER_FREQUENCY); // configurable in configure.h
     LORA_SetPaConfig(0x04, 0x07, PA_CONFIG_1262);
     LORA_SetTxParams(22, SET_RAMP_200U);

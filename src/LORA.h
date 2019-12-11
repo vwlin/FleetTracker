@@ -5,6 +5,12 @@
 #include <stdint.h>
 
 #include "SPI.h"
+#include "configure.h"
+
+/*
+ * "Private" configurations
+ */
+#define PACKET_TYPE                 PACKET_TYPE_LORA
 
 /*
  * Constants
@@ -794,5 +800,14 @@ uint16_t LORA_WaitForReceive(uint8_t offset, uint8_t * data, uint8_t size, uint3
  * See SX1262 datasheet page 103 for further explanation
  */
 void LORA_ResetTimeoutCounter();
+
+/*
+ * LORA_ImproveSensitivity
+ * Resets bit #2 at address 0x0889 for LoRa modulation with bandwidth 500 kHz. Otherwise sets bit.
+ *
+ * Suggested solution to known modulation quality limitation with 500 kHz LoRa bandwidth
+ * See SX1262 datasheet page 103 for further explanation
+ */
+void LORA_ImproveSensitivity();
 
 #endif /* LORA_H_ */
