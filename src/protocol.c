@@ -120,7 +120,7 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
 }
 
 uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
-    int totalPackets = 1; // delete later
+    int totalPackets = 1;
 
     State currentState;
     State previousState;
@@ -326,7 +326,7 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
 }
 
 uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t deviceID){
-    int totalPackets = 1; //delete later
+    int totalPackets = 1;
 
     int count = 1;
     int numErrors = 0;
