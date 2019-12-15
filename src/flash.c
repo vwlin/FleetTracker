@@ -9,7 +9,7 @@ uint8_t Flash_EraseSegment(uint32_t startAddress){
 
     WDT_A_hold(WDT_A_BASE);
 
-    // unlock segment A if necessary
+    // Unlock segment A if necessary
     if(startAddress == INFOA_START){
         FlashCtl_unlockInfoA();
     }
@@ -19,7 +19,7 @@ uint8_t Flash_EraseSegment(uint32_t startAddress){
         status = FlashCtl_performEraseCheck(flash_ptr, FLASH_SEGMENT_SIZE);
     } while (status == 0x00);
 
-    // unlock segment A if necessary
+    // Unlock segment A if necessary
     if(startAddress == INFOA_START){
         FlashCtl_lockInfoA();
     }
@@ -34,7 +34,7 @@ uint8_t Flash_ReadArray(uint32_t startAddress, uint8_t * readData, uint32_t size
     uint32_t i;
     uint8_t *flash_ptr = (uint8_t *)startAddress;
 
-    // poll busy bit in FCTL3 register
+    // Poll busy bit in FCTL3 register
     while(HWREG8(FLASH_BASE + OFS_FCTL3) & BUSY);
 
     for(i = 0; i < size; i++){
@@ -50,18 +50,18 @@ uint8_t Flash_WriteArray(uint32_t startAddress, uint8_t * writeData, uint32_t si
 
     uint8_t *flash_ptr = (uint8_t *)startAddress;
 
-    // erase segment of flash
+    // Erase segment of flash
     Flash_EraseSegment(startAddress);
 
-    // unlock segment A if necessary
+    // Unlock segment A if necessary
     if(startAddress == INFOA_START){
         FlashCtl_unlockInfoA();
     }
 
-    // write to segment of flash
+    // Write to segment of flash
     FlashCtl_write8(writeData, flash_ptr, size);
 
-    // unlock segment A if necessary
+    // Unlock segment A if necessary
     if(startAddress == INFOA_START){
         FlashCtl_lockInfoA();
     }
