@@ -219,20 +219,16 @@ void main(void){
             uint8_t data[PAYLOAD_LENGTH] = {0};
             uint16_t deviceID;
 
-            //printf("\r\nabout to call Home_WaitForConnection");
             status = Home_WaitForConnection(data, PAYLOAD_LENGTH);
 
             deviceID = ((data[0] & 0x7F) << 6) + ((data[1] & 0xFC) >> 2);
 
-            // to delete - for testing only
-            data[0] &= ~0x80;
+            data[0] &= ~0x80; // Zero out sequence number
 
-            // print data to terminal TODO: send to a pc instead
-            //printf("\r\nReceived from device %d:\r\n", deviceID);
+            // Send data to UART
+            // printf("\r\nReceived from device %d:\r\n", deviceID); // Uncomment for testing with terminal
             for(i = 0; i < PAYLOAD_LENGTH; i++){
-                //if(i >= 2)
                 printf("%x ", data[i]);
-                //data[i] = 0;
             }
             printf("\r\n");
         #endif
