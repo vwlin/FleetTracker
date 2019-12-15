@@ -24,8 +24,6 @@ void Configure_UART(){
     SET_UCA1_MODULATION;
 
     ENABLE_USCIA1;
-
-    //ENABLE_RX_IR;
 }
 
 
@@ -40,8 +38,8 @@ void UART_SendByte(uint8_t sendValue){
 int16_t UART_ReceiveByte(){
     unsigned char readValue;
 
-    if(rx_start != rx_end){ // if not empty
-        readValue = rx_buf[rx_start];  // remove a byte from rx_buf
+    if(rx_start != rx_end){ // If not empty
+        readValue = rx_buf[rx_start];  // Remove a byte from rx_buf
         rx_start = (rx_start + 1) % RX_BUF_SIZE;
         return readValue;
     }
@@ -79,16 +77,16 @@ uint32_t reads(uint8_t * buf, uint32_t size, uint32_t offset){
 
     ENABLE_RX_IR;
 
-    while(numBytes < (size-offset)){ // input is not greater than maximum size
+    while(numBytes < (size-offset)){ // Input is not greater than maximum size
         temp = UART_ReceiveByte();
             while(temp == -1){
                 temp = UART_ReceiveByte();
             }
         character = (uint8_t) temp;
 
-        if(character == LF) // check for line feed
+        if(character == LF) // Check for line feed
             break;
-        if(character == CR) // check for carriage return
+        if(character == CR) // Check for carriage return
             break;
         if(character == BACKSPACE_CHARACTER){
             numBytes--;
@@ -109,9 +107,9 @@ uint32_t reads(uint8_t * buf, uint32_t size, uint32_t offset){
 // UART interrupt service routine
 __interrupt void UARTA1_routine(void){
     switch(UCA1IV){
-    case 2: // data received, highest priority
-        if( ((rx_end + 1) % RX_BUF_SIZE) != rx_start ){   // if not full
-            rx_buf[rx_end] = UCA1RXBUF; // add a byte to rx_buf
+    case 2: // Data received, highest priority
+        if( ((rx_end + 1) % RX_BUF_SIZE) != rx_start ){   // If not full
+            rx_buf[rx_end] = UCA1RXBUF; // Add a byte to rx_buf
             rx_end = (rx_end + 1) % RX_BUF_SIZE;
             rx_overflow = 0;
         }

@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define CCR_VAL                     999        // Interrupt period = (CCR_VAL + 1)/(f_CLK) = 1 ms
-#define SLEEP_TIME                  5 //15          // seconds
+#define SLEEP_TIME                  5          // Seconds
 
 #define DISABLE_TIMER_INTERRUPT     TA1CCTL0 &= ~CCIE
 #define ENABLE_TIMER_INTERRUPT      TA1CCTL0 |= CCIE

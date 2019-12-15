@@ -13,8 +13,8 @@
  */
 
 //#define ESCAPE_CHARACTER            0x04                                  // End of Transmission (EOT)
-#define LF                          0x0A                                    // escape character
-#define CR                          0x0D                                    // escape character
+#define LF                          0x0A                                    // Escape character
+#define CR                          0x0D                                    // Escape character
 #define BACKSPACE_CHARACTER         0x08
 #define MAX_PAGE_SIZE               256
 #define RX_BUF_SIZE                 16
@@ -25,16 +25,16 @@
 #define SET_UCA1_PARITY_NONE        UCA1CTL0 &= ~BIT6 & ~BIT7
 #define SET_UCA1_PARITY_ODD         UCA1CTL0 |= BIT7
 #define SET_UCA1_PARITY_EVEN        UCA1CTL0 |= BIT6 + BIT7
-#define SET_UCA1_ENDIAN             UCA1CTL0 &= ~BIT5                      // USB uses LSB first
-#define SET_UCA1_8BIT_DATA          UCA1CTL0 &= ~BIT4                      // for Unicode or extended ASCII
+#define SET_UCA1_ENDIAN             UCA1CTL0 &= ~BIT5                       // USB uses LSB first
+#define SET_UCA1_8BIT_DATA          UCA1CTL0 &= ~BIT4                       // For Unicode or extended ASCII
 #define SET_UCA1_7BIT_DATA          UCA1CTL0 |= BIT4
 #define SET_UCA1_STOPBIT_1          UCA1CTL0 &= ~BIT3
 
-#define SET_UCA1_CLK                UCA1CTL1 |= UCSSEL_2                   // SMCLK source
-#define ENABLE_USCIA1               UCA1CTL1 &= ~UCSWRST                   // Clear UCSWRST bit
-#define DISABLE_USCIA1              UCA1CTL1 |= UCSWRST                    // Set UCSWRST bit
+#define SET_UCA1_CLK                UCA1CTL1 |= UCSSEL_2                    // SMCLK source
+#define ENABLE_USCIA1               UCA1CTL1 &= ~UCSWRST                    // Clear UCSWRST bit
+#define DISABLE_USCIA1              UCA1CTL1 |= UCSWRST                     // Set UCSWRST bit
 
-#define UCBRx                       104                                   // for 9600 with a clock speed of 1MHz (p 952 of MSP user guide)
+#define UCBRx                       104                                     // For 9600 with a clock speed of 1MHz (p 952 of MSP user guide)
 
 #define UCBRFx                      0
 #define UCBRSx                      1
