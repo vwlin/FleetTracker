@@ -10,7 +10,6 @@
 #include "protocol.h"
 #include "UART.h"
 #include "help.h"
-#include "LED.h"
 #include "clock.h"
 #include "configure.h"
 #include "gps.h"
@@ -23,8 +22,8 @@
  * TEST
  */
 
-//#define ROAMING_NODE
-#define HOME_NODE
+#define ROAMING_NODE
+//#define HOME_NODE
 //#define TEST
 
 // TODO: move to protocol.h file somehow
