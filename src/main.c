@@ -22,8 +22,8 @@
  * TEST
  */
 
-#define ROAMING_NODE
-//#define HOME_NODE
+//#define ROAMING_NODE
+#define HOME_NODE
 //#define TEST
 
 // TODO: move to protocol.h file somehow

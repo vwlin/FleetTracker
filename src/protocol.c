@@ -1,12 +1,10 @@
 #include "protocol.h"
 
-typedef enum {Listen, Greet, Receive} HomeState; // handshake
-typedef enum {Ping, WaitForGreeting, Transmit} RoamerState; // handshake
-typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // data transfer
+typedef enum {Listen, Greet, Receive} HomeState; // Handshake
+typedef enum {Ping, WaitForGreeting, Transmit} RoamerState; // Handshake
+typedef enum {Send0, WaitACK0, Send1, WaitACK1} State; // Data transfer
 
-//extern int maxRetransmit; // handshake
-//extern int maxRetransmit; // data transfer
-extern int errorCount; // data transfer
+extern int errorCount; // Data transfer
 
 uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
     uint8_t receivedHello[4] = {0};
@@ -22,7 +20,6 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 
             // Wait for client to send "Hello" ping
             case Listen:
-                //printf("\r\nlistening for a hello");
                 irqStatus = LORA_WaitForReceive(0x00, receivedHello, 4, 0, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR);
 
                 // Ping received with no errors, and password is correct
@@ -37,7 +34,6 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 
             // Send "Hello" response to client
             case Greet:
-                //printf("\r\nresponding to client");
                 sendHello[0] = PASSWORD;
                 sendHello[1] = receivedHello[2];
                 sendHello[2] = receivedHello[3];
@@ -48,11 +44,10 @@ uint8_t Home_WaitForConnection(uint8_t * data, uint8_t size){
 
             // Receive data
             case Receive:
-                //printf("\r\nabout to start receiving data");
                 deviceID = (receivedHello[2] << 8) + receivedHello[3];
                 return ReceiveData(data, size, receivedHello[1], deviceID);
-                // if fails, then return to main, and home will resume listening by calling Home_WaitForConnection
-                // if successful, then return to main, and home will resume listening by calling Home_WaitForConnection
+                // If failure, then return to main, and home will resume listening by calling Home_WaitForConnection
+                // If successful, then return to main, and home will resume listening by calling Home_WaitForConnection
         }
         currentState = nextState;
     }
@@ -74,14 +69,12 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
 
             // Ping host with password
             case Ping:
-                //printf("\r\npinging");
                 sendHello[0] = PASSWORD;
                 sendHello[1] = *startSeq;
                 sendHello[2] = (uint8_t) ((DEVICE_ID & 0xFF00) >> 8);
                 sendHello[3] = (uint8_t) (DEVICE_ID & 0x00FF);
                 irqStatus = LORA_TransmitAndWait(0x00, sendHello, 4, TIMEOUT_VALUE, IRQ_TXDONE|IRQ_TIMEOUT);
 
-                //printf("\r\npinged");
                 if(irqStatus == IRQ_TIMEOUT)
                     nextState = Ping;
                 else
@@ -90,7 +83,6 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
 
             // Wait for client to respond with "Hello" greeting
             case WaitForGreeting:
-                //printf("\r\nwaiting for greeting");
                 irqStatus = LORA_WaitForReceive(0x00, receivedHello, 3, TIMEOUT_VALUE, IRQ_RXDONE|IRQ_HEADER_ERR|IRQ_CRC_ERR|IRQ_TIMEOUT);
                 deviceID = (receivedHello[1] << 8) + receivedHello[2];
 
@@ -103,16 +95,11 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
                 }
                 // Timeout occurred
                 else if (irqStatus == IRQ_TIMEOUT){
-                    //printf("\r\ntimed out waiting for greeting");
                     if (retransmitCount < GIVEUP){
                         nextState = Ping;
                         retransmitCount++;
-                        //if (retransmitCount > maxRetransmit){
-                        //    maxRetransmit = retransmitCount;
-                        //}
                     }
                     else{
-                        //printf("\r\ngiveup");
                         return 1;
                     }
                 }
@@ -122,12 +109,11 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
                 }
                 break;
 
-            // transmit data
+            // Transmit data
             case Transmit:
-                //printf("\r\nabout to transmit data");
                 return TransmitData(data, size, startSeq);
-                // if fails, will return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
-                // if successful, then return to main, and TO UPDATE: roamer will ping again by calling Roamer_EstablishConnection
+                // If failure, will return to main, and roamer will ping again by calling Roamer_EstablishConnection
+                // If successful, then return to main, and roamer will ping again by calling Roamer_EstablishConnection
         }
         currentState = nextState;
     }
@@ -158,69 +144,59 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
     // Prepare sequence values for writing into LoRa buffer
     uint8_t seq0 = 0;
     uint8_t seq1 = 1;
-    //uint8_t * seq0 = &seq0Val;
-    //uint8_t * seq1 = &seq1Val;
 
     // Transmit all packets
     while(count <= totalPackets){
         switch (currentState){
-            //Send the odd numbered packets (with sequence bit 0)
+            // Send the odd numbered packets (with sequence bit 0)
             case Send0:
-                //printf("\r\nin Send0");
-
-                data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
-                LORA_WriteBuffer(0x00, data, size); // write whole packet to buffer
-                //enable txdone and timeout IRQs
+                data[0] |= ( (seq0 << 7) & 0x80 ); // Add sequence number in first bit
+                LORA_WriteBuffer(0x00, data, size); // Write whole packet to buffer
+                // Enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
-                LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
-                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                LORA_SetTx(0x000000); // Timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
+                while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                 nextState = WaitACK0;
             break;
 
-            //data has been transmitted, need to wait for receiver to send acknowledgment
+            // Data has been transmitted, need to wait for receiver to send acknowledgment
             case WaitACK0:
-                //printf("\r\nin WaitACK0");
                 LORA_SetRx(TIMEOUT_VALUE);
-                //implicit header mode timeout bug workaround
+                // Implicit header mode timeout bug workaround
                 if(HEADER_MODE == LORA_HT_IMPLICIT){
                     LORA_ResetTimeoutCounter();
                 }
-                //enable rxdone, header error, crc error, timeout
+                // Enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
-                //poll status register until something changes
+                // Poll status register until something changes
                 while( !(LORA_GetIrqStatus()) );
 
-                //if acknowledgment is received before timeout and no errors are found, move on and send 1
+                // If acknowledgment is received before timeout and no errors are found, move on and send 1
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
                     LORA_ReadBuffer(0x00, received, 3); //read ACK
                     receivedID = (received[1] << 8) + received[2];
-                    //verify ACK and device ID
+                    // Verify ACK and device ID
                     if ( ((received[0] & 0x80 ) == 0x00) && (receivedID == DEVICE_ID) ){
-                        //printf("\r\nACK 0 with correct dev id received");
-                        //if (retransmitCount > maxRetransmit){
-                        //    maxRetransmit = retransmitCount;
-                        //}
                         retransmitCount = 0;
 
-                        //increment count based on a successful, acknowledged transmission
+                        // Increment count based on a successful, acknowledged transmission
                         count++;
                         nextState = Send1;
                         break;
                     }
                     else {
-                        if(receivedID != DEVICE_ID){ // if received ID incorrect, resend current frame before waiting for ACK 0
-                            //printf("\r\nACK 0 with incorrect DEV ID received");
+                        if(receivedID != DEVICE_ID){ // If received ID incorrect, resend current frame before waiting for ACK 0
                             retransmitCount++;
                             if (retransmitCount < GIVEUP_TRANSMIT){
-                                //determine current frame based on count and re-send it
-                                data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
+                                // Determine current frame based on count and re-send it
+                                data[0] |= ( (seq0 << 7) & 0x80 ); // Add sequence number in first bit
                                 LORA_WriteBuffer(0x00, data, size);
                                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                                 LORA_SetTx(0x000000);
-                                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                                while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                                LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                             }
                             else return 1;
                         }
@@ -230,24 +206,20 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                     }
                 }
 
-                //if timeout, resend current frame then wait for ACK0
+                // If timeout, resend current frame then wait for ACK0
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
-                    //printf("\r\ntimed out");
                     LORA_ClearIrqStatus(0x0262);
                     if (previousState == currentState){
                         retransmitCount++;
-                        //if (retransmitCount > maxRetransmit){
-                        //    maxRetransmit = retransmitCount;
-                        //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
-                        //determine current frame based on count and re-send it
-                        data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
+                        // Determine current frame based on count and re-send it
+                        data[0] |= ( (seq0 << 7) & 0x80 ); // Add sequence number in first bit
                         LORA_WriteBuffer(0x00, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
-                        while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                        LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                        while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                        LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                         nextState = WaitACK0;
                     }
                     else return 1;
@@ -257,62 +229,55 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                     break;
                 }
 
-            //Send the even numbered packets (with sequence bit 1)
+            // Send the even numbered packets (with sequence bit 1)
             case Send1:
-                //printf("\r\nin Send1");
-                //write sequence number
-                data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
+                // Write sequence number
+                data[0] |= ( (seq1 << 7) & 0x80 ); // Add sequence number in first bit
                 LORA_WriteBuffer(0x00, data, size);
-                //enable txdone and timeout IRQs
+                // Enable txdone and timeout IRQs
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
-                LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
-                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
-                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                LORA_SetTx(0x000000); // Timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
+                while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone or timeout
+                LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                 nextState = WaitACK1;
             break;
 
             case WaitACK1:
-                //printf("\r\nin WaitACK1");
-                LORA_SetRx(TIMEOUT_VALUE); //this gives a timeout duration of 1 second using formula timeout duration = timeout*15.625us
-                // implement implicit header mode timeout bug workaround
+                LORA_SetRx(TIMEOUT_VALUE); // This gives a timeout duration of 1 second using formula timeout duration = timeout*15.625us
+                // Implement implicit header mode timeout bug workaround
                 if(HEADER_MODE == LORA_HT_IMPLICIT){
                     LORA_ResetTimeoutCounter();
                 }
-                //enable rxdone, header error, crc error, timeout
+                // Enable rxdone, header error, crc error, timeout
                 LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
-                //poll status register until something changes
+                // Poll status register until something changes
                 while( !(LORA_GetIrqStatus()) );
 
-                //if acknowledgment is received before timeout and no errors are found, move on and send 0
+                // If acknowledgment is received before timeout and no errors are found, move on and send 0
                 if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
                     LORA_ClearIrqStatus(0x0262);
                     uint8_t received[1] = {0};
                     LORA_ReadBuffer(0x00, received, 3); //read ACK
                     receivedID = (received[1] << 8) + received[2];
-                    //verify ACK
+                    // Verify ACK
                     if ( ((received[0] & 0x80 ) == 0x80) && (receivedID == DEVICE_ID) ){
-                        //printf("\r\nACK 1 with correct dev id received");
-                        //if (retransmitCount > maxRetransmit){
-                        //    maxRetransmit = retransmitCount;
-                        //}
                         retransmitCount = 0;
 
-                        count++;     //increment count based on a successful, acknowledged transmission
+                        count++; // Increment count based on a successful, acknowledged transmission
                         nextState = Send0;
                         break;
                     }
                     else {
-                        if(receivedID != DEVICE_ID){ // if received ID incorrect, resend current frame before waiting for ACK 0
-                            //printf("\r\nACK 1 with incorrect dev ID received");
+                        if(receivedID != DEVICE_ID){ // If received ID incorrect, resend current frame before waiting for ACK 0
                             retransmitCount++;
                             if (retransmitCount < GIVEUP_TRANSMIT){
-                                //determine current frame based on count and re-send it
-                                data[0] |= ( (seq0 << 7) & 0x80 ); // add sequence number in first bit
+                                // Determine current frame based on count and re-send it
+                                data[0] |= ( (seq0 << 7) & 0x80 ); // Add sequence number in first bit
                                 LORA_WriteBuffer(0x00, data, size);
                                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                                 LORA_SetTx(0x000000);
-                                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                                while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                                LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                             }
                             else return 1;
                         }
@@ -321,24 +286,20 @@ uint8_t TransmitData(uint8_t * data, uint8_t size, uint8_t * startSeq){
                         break;
                     }
                 }
-                //if timeout, resend current frame then wait for ACK0
+                // If timeout, resend current frame then wait for ACK0
                 else if (LORA_GetIrqStatus() & IRQ_TIMEOUT){
-                    //printf("\r\ntimed out");
                     LORA_ClearIrqStatus(0x0262);
                     if (previousState == currentState){
                         retransmitCount++;
-                        //if (retransmitCount > maxRetransmit){
-                        //    maxRetransmit = retransmitCount;
-                        //}
                     }
                     if (retransmitCount < GIVEUP_TRANSMIT){
-                        //determine current frame based on count and re-send it
-                        data[0] |= ( (seq1 << 7) & 0x80 ); // add sequence number in first bit
+                        // Determine current frame based on count and re-send it
+                        data[0] |= ( (seq1 << 7) & 0x80 ); // Add sequence number in first bit
                         LORA_WriteBuffer(0x00, data, size);
                         LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                         LORA_SetTx(0x000000);
-                        while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                        LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                        while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                        LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
                         nextState = WaitACK1;
                         break;
                     }
@@ -373,61 +334,58 @@ uint8_t ReceiveData(uint8_t * data, uint8_t size, uint8_t startSeq, uint16_t dev
     uint8_t previousSeqNum = 0x00;
 
     if(startSeq == 0)
-        previousSeqNum = 0x80; // sequence number 1, shifted left 7 (assuming first sequence number is 0)
+        previousSeqNum = 0x80; // Sequence number 1, shifted left 7 (assuming first sequence number is 0)
     else
-        previousSeqNum = 0x00; // sequence number 0, shifted left 7 (assuming first sequence number is 1)
+        previousSeqNum = 0x00; // Sequence number 0, shifted left 7 (assuming first sequence number is 1)
 
     uint8_t info[2] = {0};
-    uint8_t receivedSeqNum[1] = {0}; // for sequence number
-    uint16_t receivedID; // for checking source of data
+    uint8_t receivedSeqNum[1] = {0}; // For sequence number
+    uint16_t receivedID; // For checking source of data
     uint8_t returnACK[3] = {0};
 
     while (count <= totalPackets){
-        // enable rxdone, header CRC, payload CRC, timeout IRQs
+        // Enable rxdone, header CRC, payload CRC, timeout IRQs
         LORA_SetDioIrqParams(0x0262, 0x0000, 0x0000, 0x0000);
         LORA_SetRx(GIVEUP_TIMEOUT);
-        // implement implicit header mode timeout bug workaround
+        // Implement implicit header mode timeout bug workaround
         if(HEADER_MODE == LORA_HT_IMPLICIT){
             LORA_ResetTimeoutCounter();
         }
 
-        //wait for rxDone or timeout
+        // Wait for rxDone or timeout
         while( !(LORA_GetIrqStatus()) );
 
-        //if received before timeout with no errors
+        // If received before timeout with no errors
         if ((LORA_GetIrqStatus()) == IRQ_RXDONE){
-            //printf("\r\nreceived, no timeout, no errors");
             LORA_ClearIrqStatus(0x0262);
 
-            //get sequence number and received device ID
+            // Get sequence number and received device ID
             LORA_ReadBuffer(0x00, info, 2);
-            *receivedSeqNum = info[0] & 0x80; // parse out sequence number
-            receivedID = ((info[0] & 0x7F) << 6) + ((info[1] & 0xFC) >> 2); // parse out received device ID
+            *receivedSeqNum = info[0] & 0x80; // Parse out sequence number
+            receivedID = ((info[0] & 0x7F) << 6) + ((info[1] & 0xFC) >> 2); // Parse out received device ID
 
             // If not a repeat and received from the correct source, save the data
             if ( (*receivedSeqNum != previousSeqNum) && (receivedID == deviceID)){
-                //printf("\r\nnot a repeat");
-                //read the buffer
+                // Read the buffer
                 LORA_ReadBuffer(0x00, data, size);
-                previousSeqNum = *receivedSeqNum; // parse out sequence number
+                previousSeqNum = *receivedSeqNum; // Parse out sequence number
 
                 count++;
             }
             else{
-                //printf("\r\nrepeat");
                 numErrors++;
             }
 
             if(receivedID == deviceID){
-                //send ACK whether repeat or not
+                // Send ACK whether repeat or not
                 returnACK[0] = *receivedSeqNum;
                 returnACK[1] = (uint8_t) ((deviceID & 0xFF00) >> 8);
                 returnACK[2] = (uint8_t) (deviceID & 0x00FF);
                 LORA_WriteBuffer(0x00, returnACK , 3);
                 LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000);
                 LORA_SetTx(0x000000);
-                while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone
-                LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+                while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone
+                LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
             }
         }
 
