@@ -2,7 +2,6 @@
 #define TEST_H_
 
 #include "LORA.h"
-#include "flash.h"
 #include "protocol.h"
 
 /*
@@ -12,14 +11,6 @@
  * Returns 1 if all tests pass, else 0
  */
 uint8_t testLORA();
-
-/*
- * testFlash
- * Tests communications between MSP430 and internal memory
- *
- * Returns 1 if all tests pass, else 0
- */
-uint8_t testFlash();
 
 /*
  * testTransmitOneFrame

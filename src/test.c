@@ -60,30 +60,6 @@ uint8_t testLORA(){
     return pass;
 }
 
-uint8_t testFlash(){
-    uint8_t i;
-    uint8_t pass = 1;
-
-    uint8_t writeData[5] = {0};
-    uint8_t readData[5] = {0};
-
-    // clear flash so test doesn't pass using old data
-    Flash_EraseSegment(INFOB_START);
-
-    for(i = 0; i < 5; i++){
-        writeData[i] = i;
-    }
-
-    Flash_WriteArray(INFOB_START, writeData, 5);
-    Flash_ReadArray(INFOB_START, readData, 5);
-
-    for(i = 0; i < 5; i++){
-        pass &= (writeData[i] == readData[i]);
-    }
-
-    return pass;
-}
-
 void testTransmitOneFrame(){
     uint16_t i;
     LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // enable txdone and timeout IRQs

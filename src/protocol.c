@@ -64,9 +64,6 @@ uint8_t Roamer_EstablishConnection(uint8_t * data, uint8_t size, uint8_t * start
     uint16_t irqStatus;
     uint16_t deviceID;
 
-    uint8_t flags[1] = {0};
-    Flash_ReadArray(INFOA_START, flags, 1);
-
     RoamerState currentState = Ping;
     RoamerState nextState;
 

@@ -7,7 +7,6 @@
 
 #include "LORA.h"
 #include "UART.h"
-#include "flash.h"
 #include "help.h"
 #include "configure.h"
 
