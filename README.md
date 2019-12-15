@@ -28,3 +28,22 @@ To use TeraTerm with the firmware:
 3. Go to Setup > Serial Port. In the dropdown menu for Speed, select the appropriate baudrate. Click OK.
 4. Go to Setup > Terminal and select Local echo. In the Coding-receive and Coding-transmit dropdown menus, select "UTF-8". Click OK.
 5. TeraTerm is ready to be used
+
+UI Setup
+1. If using Windows, we recommend using Anaconda to install all Python packages, found here: https://www.anaconda.com/distribution/#windows
+2. The following packages are required for our UI to display correctly:
+	a. serial
+		- conda install -c anaconda pyserial
+	b. folium
+		- conda install -c conda-forge folium
+	c. matplotlib
+		- conda install -c conda-forge matplotlib
+	d. selenium
+		- conda install -c conda-forge selenium
+	e. pyautogui
+		- conda install -c conda-forge pyautogui
+3. To run the program:
+	a. open an Anaconda terminal
+	b. cd into the project directory
+	c. run in the terminal:
+		>> python main.py <COM#>
