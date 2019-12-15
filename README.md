@@ -32,18 +32,13 @@ To use TeraTerm with the firmware:
 UI Setup
 1. If using Windows, we recommend using Anaconda to install all Python packages, found here: https://www.anaconda.com/distribution/#windows
 2. The following packages are required for our UI to display correctly:
-* serial
-	* conda install -c anaconda pyserial
-* folium
-	* conda install -c conda-forge folium
-* matplotlib
-	* conda install -c conda-forge matplotlib
-* selenium
-	* conda install -c conda-forge selenium
-* pyautogui
-	* conda install -c conda-forge pyautogui
+* serial:      conda install -c anaconda pyserial
+* folium:      conda install -c conda-forge folium
+* matplotlib:  conda install -c conda-forge matplotlib
+* selenium:    conda install -c conda-forge selenium
+* pyautogui:   conda install -c conda-forge pyautogui
 3. To run the program:
 * open an Anaconda terminal
 * cd into the project directory
 * run in the terminal:
-	* >> python main.py <COM#>
+	* python main.py <COM#>
