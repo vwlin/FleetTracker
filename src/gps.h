@@ -24,11 +24,41 @@
 #define SELECT_GPS_CS                GPS_CS_OUTPUT &= ~GPS_CS_PIN //drive LOW
 #define DESELECT_GPS_CS              GPS_CS_OUTPUT |= GPS_CS_PIN //drive HIGH
 
+/*
+ * configureGPS
+ * Drives safeboot high and initializes chip select
+ */
 void configureGPS();
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * CONSTRUCT PACKETS
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
 /*
- * Configures SPI port of ublox module
+ * ublox_configure_spi_port
+ * Builds packet to configure SPI port of ublox module
+ *
+ * Parameters:
+ *  returnPacket - array to be filled with send data
  */
 void ublox_configure_spi_port(unsigned char* returnPacket);
+
+/*
+ * configure_ublox_nav_pvt
+ * Builds packet to request data from ublox module
+ *
+ * Parameters:
+ *  ublox_nav - array to be filled with send data
+ */
 void configure_ublox_nav_pvt(uint8_t* ublox_nav);
+
+/*
+ * configure_ublox_poll
+ * Builds packet to configure requesting data from ublox module
+ *
+ * Parameters:
+ *  ublox_poll - array to be filled with send data
+ *  id1 - used to classify what to configure on ublox module
+ *  id2 - used to classify what to configure on ublox module
+ */
 void configure_ublox_poll(uint8_t* ublox_poll, uint8_t id1, uint8_t id2);

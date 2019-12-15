@@ -49,8 +49,11 @@ void main(void){
 
     unsigned char configPacket[28];
     unsigned char navPacket[8];
+
+    // Construct data request and configuration packets for GPS
     ublox_configure_spi_port(configPacket);
     configure_ublox_poll(navPacket, 0x01, 0x07);
+
     unsigned char ublox_input_buffer[100];
     unsigned char payload[92];
     int i;
@@ -119,6 +122,8 @@ void main(void){
             for(i = 0; i<92; i++){
                 payload[i] = ublox_input_buffer[i + 6];
             }
+
+            // Populate variables with bits from payload
             year = (uint8_t)(payload[4]) + (uint8_t)(payload[5] << 8);
             month = (uint8_t)payload[6];
             day = (uint8_t)payload[7];
@@ -135,13 +140,22 @@ void main(void){
                 ublox_input_buffer[i] = 0;
             }
 
+            // Send configuration packet to GPS
             SPI_SendPacket_GPS(configPacket, 28);
+
+            // Wait until data received is nonzero
             while(ublox_input_buffer[0] == 0) {
                 SPI_ReceivePacket_GPS(ublox_input_buffer,100);
             }
+
+            // Wait until data received starts with 0xB5 (UBX Protocol)
             while((ublox_input_buffer[0] != 0xb5)){
+
+                // Send data request
                 SPI_SendPacket_GPS(navPacket,8);
                 for(i = 0; i<100; i++) ublox_input_buffer[i]=0;
+
+                // Wait until data received is nonzero
                 while(ublox_input_buffer[0] == 0) {
                     SPI_ReceivePacket_GPS(ublox_input_buffer,100);
                }
