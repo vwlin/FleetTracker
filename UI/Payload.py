@@ -1,24 +1,33 @@
 # Payload.py
 #
-#   Payload fields:
-#       - seqNum
-#       - devID
-#       - volt
-#       - temp
-#       - lat
-#       - lon
-#       - coord
-#       - day
-#       - hrs
-#       - min
-#       - sec
+#   Payload class fields:
+#       - seqNum:   int
+#       - devID:    int
+#       - volt:     float
+#       - temp:     float
+#       - lat:      float
+#       - lon:      float
+#       - coord:    (float lat, float lon)
+#       - mon:      int
+#       - day:      int
+#       - hrs:      int
+#       - min:      int
+#       - sec:      int
 #
 #   Functions:
-#       - getTimeStr()
+#       - getCallout()
 #       - getLatLonStr()
 #
-##############################################
+##########################################################
 
+
+#################### HELPER FUNCTIONS ####################
+'''
+function str_to_coord: 
+    - input     -   data_str: (string) 26 binary bits of lat or long data
+    - purpose   -   convert from bits to float
+    - return    -   result: (float) value of lat/lon coordinate
+'''
 def str_to_coord(data_str):
     # convert string to number
     data_str = data_str + '000000'          # bit shift 6 to the left
@@ -42,16 +51,32 @@ def str_to_coord(data_str):
     result = float(coord) * 10**-7          # multiply result by 10^-7
     return result
 
-def bin2frac(bin):
-    frac = 0;
-    for i in range(len(bin)):
-        if (bin[i] == '1'):
-            exp = (1/2)**(i+1)
-            frac = frac + exp
-    return frac
-  
+'''
+function format_time: 
+    - input     -   num, either string or int
+    - purpose   -   add leading zero if input < 10
+    - return    -   formatted string
+'''
+def format_time(num):
+    formatted = str(num)
+    if (num < 10):
+        formatted = '0'+formatted
+    return formatted
+##########################################################
+
+
+
+
+
+################### PAYLOAD CLASS ########################
 class Payload:
-    def __init__(self, data): 
+    '''
+    init Payload: 
+        - input     -   string of 128-bit binary payload
+        - purpose   -   parse binary payload into appropriate data fields
+    '''
+    def __init__(self, data):
+        self.data = data[0:len(data)-1]
         #self.seq_num  = int(data[0:1],2)     # 1 bit
         self.devID   = int(data[1:14],2)      # 13 bits
 
@@ -69,23 +94,26 @@ class Payload:
         self.coord = (self.lat,self.lon)
         
         #   Timestamp
-        self.day = int(data[90:95],2)         # 5 bits
-        #print(self.day)
         self.mon = int(data[95:99],2)         # 4 bits
-        #print(self.mon)
-        #print(data[99:104])
+        self.day = int(data[90:95],2)         # 5 bits
         self.hrs = int(data[99:104],2)        # 5 bits
-        #print(self.hrs)
         self.min = int(data[104:110],2)       # 6 bits
-        #print(self.min)
         self.sec = int(data[110:116],2)       # 6 bits
-        #print(self.sec)
-        
-        # self.unused = int(data[116:120],2)    # 4 bits
-    
+        # unused = int(data[116:120],2)    # 4 bits
+    '''
+    function getCallout: 
+        - input     -   nothing
+        - purpose   -   format popup for map
+                    -   display device ID, date, time
+        - return    -   string of map popup
+    '''
     def getCallout(self):
-        return 'Device #'+str(self.devID)+'\nDate: '+str(self.mon)+'/'+str(self.day)+'\nTime: '+str(self.hrs)+':'+str(self.min)+':'+str(self.sec)
-        
+        return 'Device #'+str(self.devID)+'\nDate: '+str(self.mon)+'/'+format_time(self.day)+'\nTime: '+format_time(self.hrs)+':'+format_time(self.min)+':'+format_time(self.sec)
+    '''
+    function getLatLonStr: 
+        - input     -   nothing
+        - return    -   string of latitude,longintude 
+    '''  
     def getLatLonStr(self):
         return str(self.lat)+', '+str(self.lon)
         
