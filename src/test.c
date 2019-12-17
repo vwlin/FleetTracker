@@ -60,33 +60,9 @@ uint8_t testLORA(){
     return pass;
 }
 
-uint8_t testFlash(){
-    uint8_t i;
-    uint8_t pass = 1;
-
-    uint8_t writeData[5] = {0};
-    uint8_t readData[5] = {0};
-
-    // clear flash so test doesn't pass using old data
-    Flash_EraseSegment(INFOB_START);
-
-    for(i = 0; i < 5; i++){
-        writeData[i] = i;
-    }
-
-    Flash_WriteArray(INFOB_START, writeData, 5);
-    Flash_ReadArray(INFOB_START, readData, 5);
-
-    for(i = 0; i < 5; i++){
-        pass &= (writeData[i] == readData[i]);
-    }
-
-    return pass;
-}
-
 void testTransmitOneFrame(){
     uint16_t i;
-    LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // enable txdone and timeout IRQs
+    LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // Enable txdone and timeout IRQs
 
     uint8_t bufData[PAYLOAD_LENGTH] = {0};
     for(i = 0; i < PAYLOAD_LENGTH; i++){
@@ -94,9 +70,9 @@ void testTransmitOneFrame(){
     }
     LORA_WriteBuffer(0x00, bufData, PAYLOAD_LENGTH);
 
-    LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
-    while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
-    LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
+    LORA_SetTx(0x000000); // Timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
+    while( !(LORA_GetIrqStatus()) ); // Wait for IRQ txdone or timeout
+    LORA_ClearIrqStatus(0x0201); // Clear IRQ txdone/timeout flag
 }
 
 uint8_t testReceiveOneFrame(){
@@ -108,7 +84,7 @@ uint8_t testReceiveOneFrame(){
         correctData[i] = i;
     }
 
-    LORA_SetDioIrqParams(0x0202, 0x0000, 0x0000, 0x0000); // enable rxdone and timeout IRQs
+    LORA_SetDioIrqParams(0x0202, 0x0000, 0x0000, 0x0000); // Enable rxdone and timeout IRQs
 
     LORA_SetRx(0x000000);
     while( !(LORA_GetIrqStatus()) );
@@ -123,68 +99,3 @@ uint8_t testReceiveOneFrame(){
 
     return pass;
 }
-
-void testFileTransmit(uint8_t * file, uint32_t size){
-    uint16_t i, j;
-
-    uint16_t numWholePackets = ( size*8 )/( (MAX_BUFFER_SIZE-1)*8 );
-    uint8_t extraPacket = ( ( size*8 )%( (MAX_BUFFER_SIZE-1)*8 ) ) > 0;
-    uint16_t totalPackets = numWholePackets + extraPacket;
-
-    uint8_t bufData[MAX_BUFFER_SIZE-1] = {0}; // to send
-    uint8_t received[MAX_BUFFER_SIZE-1] = {0};
-    for(i = 0; i < totalPackets; i++){
-        // send file section
-        LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // enable txdone and timeout IRQs
-        for(j = i*254; j < (i+1)*254; j++){
-            if(j < size)
-                bufData[j-i*254] = file[j];
-            else
-                bufData[j-i*254] = 0;
-        }
-        LORA_WriteBuffer(0x00, bufData, MAX_BUFFER_SIZE-1);
-        LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
-        while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
-        LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
-
-        // receive unofficial acknowledgement
-        LORA_SetDioIrqParams(0x0202, 0x0000, 0x0000, 0x0000); // enable rxdone and timeout IRQs
-        LORA_SetRx(0x000000);
-        while( !(LORA_GetIrqStatus()) );
-        LORA_ClearIrqStatus(0x0202);
-        LORA_ReadBuffer(0x00, received, MAX_BUFFER_SIZE);
-    }
-}
-
-void testFileReceive(uint8_t * file, uint32_t size){
-    uint16_t i, j;
-
-    uint16_t numWholePackets = ( size*8 )/( (MAX_BUFFER_SIZE-1)*8 ); // reserve one bit for sequence number
-    uint8_t extraPacket = ( ( size*8 )%( (MAX_BUFFER_SIZE-1)*8 ) ) > 0;
-    uint16_t totalPackets = numWholePackets + extraPacket;
-
-    uint8_t bufData[MAX_BUFFER_SIZE-1] = {0}; // to send
-    uint8_t received[MAX_BUFFER_SIZE-1] = {0};
-
-    for(i = 0; i < totalPackets; i++){
-        // receive data
-        LORA_SetDioIrqParams(0x0202, 0x0000, 0x0000, 0x0000); // enable rxdone and timeout IRQs
-        LORA_SetRx(0x000000);
-        while( !(LORA_GetIrqStatus()) );
-        LORA_ClearIrqStatus(0x0202);
-        LORA_ReadBuffer(0x00, received, MAX_BUFFER_SIZE);
-
-        for(j = 0; (j < MAX_BUFFER_SIZE-1) && (j+i*254 < size); j++){
-            file[j+i*254] = received[j];
-        }
-
-        // send unofficial acknowledgement
-        LORA_SetDioIrqParams(0x0201, 0x0000, 0x0000, 0x0000); // enable txdone and timeout IRQs
-        LORA_WriteBuffer(0x00, bufData, MAX_BUFFER_SIZE-1);
-        LORA_SetTx(0x000000); // timeout disable - stay in TX mode until packet is transmitted and returns in STBY_RC mode
-        while( !(LORA_GetIrqStatus()) ); // wait for IRQ txdone or timeout
-        LORA_ClearIrqStatus(0x0201); // clear IRQ txdone/timeout flag
-    }
-}
-
-

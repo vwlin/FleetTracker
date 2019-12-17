@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "driverlib\MSP430F5xx_6xx\driverlib.h"
-#define UCS_MCLK_DESIRED_FREQUENCY_IN_KHZ   1000
+#define UCS_MCLK_DESIRED_FREQUENCY_IN_KHZ   1000    // 1 MHz
 #define UCS_MCLK_FLLREF_RATIO   (1000000UL/32768)
 
 /*
@@ -15,7 +15,7 @@ void Configure_Clock (void);
 
 /*
  * NMI_ISR
- * Interrupt handler for ?
+ * Interrupt handler for NMI
  */
 void NMI_ISR(void);
 

@@ -24,11 +24,12 @@
 #define SELECT_GPS_CS                GPS_CS_OUTPUT &= ~GPS_CS_PIN //drive LOW
 #define DESELECT_GPS_CS              GPS_CS_OUTPUT |= GPS_CS_PIN //drive HIGH
 
-/*
- * configureGPS
+
+/* Configure_GPS
  * Drives safeboot high and initializes chip select
  */
-void configureGPS();
+void Configure_GPS();
+
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * CONSTRUCT PACKETS

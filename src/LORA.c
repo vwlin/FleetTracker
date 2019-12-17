@@ -1158,7 +1158,7 @@ uint16_t LORA_WaitForReceive(uint8_t offset, uint8_t * data, uint8_t size, uint3
 
     LORA_SetDioIrqParams(IRQMask, 0x0000, 0x0000, 0x0000);
     LORA_SetRx(timeout);
-    if(timeout > 0){ // implicit header timeout bug workaround
+    if(timeout > 0){ // Implicit header timeout bug workaround
         LORA_ResetTimeoutCounter();
     }
 

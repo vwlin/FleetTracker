@@ -2,7 +2,7 @@
 #include <msp430.h>
 #include "gps.h"
 
-void configureGPS(){
+void Configure_GPS(){
     SET_SAFEBOOT_AS_GPIO;
     SET_SAFEBOOT_AS_OUTPUT;
     DRIVE_SAFEBOOT_PIN_HIGH;

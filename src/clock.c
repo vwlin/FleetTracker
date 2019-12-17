@@ -42,23 +42,23 @@ uint16_t status;
 
 void Configure_Clock (void)
 {
-    //Set VCore
+    // Set VCore
     PMM_setVCore(PMM_CORE_LEVEL_0);
 
-    //Set DCO FLL reference = REFO
+    // Set DCO FLL reference = REFO
     UCS_initClockSignal(
         UCS_FLLREF,
         UCS_REFOCLK_SELECT,
         UCS_CLOCK_DIVIDER_1
         );
-    //Set ACLK = REFO
+    // Set ACLK = REFO
     UCS_initClockSignal(
         UCS_ACLK,
         UCS_REFOCLK_SELECT,
         UCS_CLOCK_DIVIDER_1
         );
 
-    //Set Ratio and Desired MCLK Frequency and initialize DCO
+    // Set Ratio and Desired MCLK Frequency and initialize DCO
     UCS_initFLLSettle(
         UCS_MCLK_DESIRED_FREQUENCY_IN_KHZ,
         UCS_MCLK_FLLREF_RATIO
@@ -83,8 +83,7 @@ __attribute__((interrupt(UNMI_VECTOR)))
 void NMI_ISR(void)
 {
   do {
-    // If it still can't clear the oscillator fault flags after the timeout,
-    // trap and wait here.
+    // If it still can't clear the oscillator fault flags after the timeout, trap and wait here.
     status = UCS_clearAllOscFlagsWithTimeout(1000);
   } while(status != 0);
 }
