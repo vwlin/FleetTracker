@@ -117,8 +117,3 @@ class Payload:
     def getLatLonStr(self):
         return str(self.lat)+', '+str(self.lon)
         
-        
-        
-        
-        
-        

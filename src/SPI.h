@@ -114,12 +114,17 @@ unsigned char SPI_Busy_GPS();
 /*
  * SPI_SendPacket_GPS
  * Sends a packet of a given length over
- *
- * Parameters:
- *  packet - array of characters
+ * @param packet: array of characters
+ * @param size: number of bytes in packet
  */
 void SPI_SendPacket_GPS(unsigned char* packet, int size);
 
+/*
+ * SPI_SendPacket_GPS
+ * Sends a packet of a given length over
+ * @param packet: array of characters
+ * @param size: number of bytes in packet
+ */
 void SPI_ReceivePacket_GPS(unsigned char* packet, int size);
 
 #endif /* SPI_H_ */
